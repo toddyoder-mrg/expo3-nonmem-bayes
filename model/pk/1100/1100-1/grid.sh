@@ -1,0 +1,5 @@
+#!/bin/bash
+
+#$ -wd /data/bbr-nonmem-poppk-bayes/model/pk/1100/1100-1
+
+/data/bbr-nonmem-poppk-bayes/bin/bbi nonmem run local 1100-1.ctl

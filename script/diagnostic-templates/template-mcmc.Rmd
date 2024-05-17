@@ -1,0 +1,467 @@
+---
+title: "MCMC diagnostics"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    depth: 2
+params:
+  run: "1000"
+  modelDir: !r here::here("model/pk")
+  script: "template-mcmc.Rmd"
+  n_per_page: 4
+  myTheme: !r theme(text = element_text(size = 12), axis.text = element_text(size = 10))
+  include_code: FALSE
+  include_plots: TRUE
+# n_thin: select every `n_thin` samples for trace/density plots
+  n_thin: 1
+# n_thin2: select every `n_thin2` samples for Bayes pairs plots
+  n_thin2: 10
+# theta_cov: indices of covariate THETAs to separate when creating pairs plots, e.g. !r c(1, 2, 6)
+#   set to NULL to create a single pairs plot for THETAs
+  theta_cov: NULL
+#  theta_cov: !r c(6, 7, 8)
+  run_mrggsave: TRUE
+---
+
+# Run number `r params$run`
+
+To produce a set of MCMC diagnostic plots that will be included in a report. Please
+note that these plots are just meant to provide an example of what could be
+created and how. They are not an exhaustive list of every possible plot and were
+chosen with the project aims in mind.
+
+# Set up
+
+```{r setup_general, include = F}
+### General script set-up
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.height = 5,
+  fig.width = 5
+)
+
+### Libraries ----------------------------
+suppressPackageStartupMessages(library(tidyverse))
+library(pmplots)
+library(bbr)
+library(bbr.bayes)
+suppressPackageStartupMessages(library(posterior))
+library(bayesplot)
+library(mrggsave)
+library(pmtables)
+library(mrgsolve)
+library(patchwork)
+library(loo)
+library(glue)
+library(cowplot)
+library(here)
+
+### Directories ----------------------------
+figDir <- here::here("deliv", "figure", "report")
+dataDir <- here::here("data")
+
+if (!file.exists(figDir)) dir.create(figDir)
+
+thisScript <- params$script
+options(
+  mrg.script = params$script,
+  mrggsave.dev = "pdf,png"
+)
+
+this_theme <- pmplots::pm_theme() + params$myTheme
+theme_set(this_theme)
+n_per_page <- params$n_per_page
+```
+
+
+```{r load_any_functions, include = F}
+### Source function scripts
+source(here::here("script/functions-diagnostics-rhat-ess.R"))
+source(here::here("script/functions-mcmc-diagnostics.R"))
+```
+
+### Model location
+
+Define `modelName` and path to the model directory (`MODEL_DIR`).
+
+```{r setup_bbr, echo = params$include_code, message = FALSE}
+# Set directories for bbr models ----------------------------
+MODEL_DIR <- params$modelDir
+modelName <- params$run
+thisModelPath <- file.path(MODEL_DIR, modelName)
+```
+
+### Figure location
+
+If saving figures out to pdf, define where those pdfs should be saved to.
+Here the figures are saved to ```deliv > figure > model_run_number```
+
+```{r makeDir_mrggsave, echo = params$include_code, eval = params$run_mrggsave}
+thisFigDir <- file.path(figDir, modelName)
+if (!file.exists(thisFigDir)) dir.create(thisFigDir)
+
+### set mrggsave figure directory here
+options(mrggsave.dir = thisFigDir)
+```
+
+
+
+# Model details
+
+A summary of high-level model details.
+
+Read in the model details using `read_model`. Details stored in the `mod` object
+can be used to identify the location of the source data (used in $DATA) - to see
+how this is done look at the `bbr::get_data_path()` and
+`bbr::build_path_from_model()` helper functions.
+
+```{r modelDetails, echo = params$include_code, results = "asis"}
+mod <- read_model(file.path(MODEL_DIR, params$run))
+mod
+```
+
+### Read output
+
+```{r modelOutputSummary, echo = params$include_code}
+# `draws_array` object from the `posterior` package
+draws <- read_fit_model(mod)
+n_chains <- nchains(draws)
+n_iter <- niterations(draws)
+pars <- dimnames(draws)$variable
+
+# Summary of the posterior 
+draws_param <- subset_draws(draws, variable = c("THETA", "OMEGA", "SIGMA"))
+draws_sum <- draws_param %>% 
+  summarize_draws()
+
+fixed <- is.na(draws_sum$rhat)
+pars_to_plot <- variables(draws_param)[!fixed]
+iter_to_plot <- seq_len(n_iter)[seq_len(n_iter) %% params$n_thin == 0]
+draws_param_plot <- subset_draws(draws_param, variable = pars_to_plot)
+draws_param_thin <- subset_draws(draws_param_plot, iteration = iter_to_plot)
+iter_to_plot2 <- seq_len(n_iter)[seq_len(n_iter) %% params$n_thin2 == 0]
+draws_param_thin2 <- subset_draws(draws_param_plot, iteration = iter_to_plot2)
+```
+
+## Parameter estimates 
+
+Compute summaries of posterior distributions as well as some diagnostics.
+
+Bulk effective sample size (ESS) is a measure of sampling efficiency for the
+location of the distribution, while Tail ESS is a measure of sampling efficiency
+for the tails (5% and 95% quantiles) of the distribution. Higher values indicate
+greater sampling efficiency.  A very rough rule of thumb is to aim for at least
+400 for each parameter.
+
+R-hat is a convergence diagnostic that compares the between- and within-chain
+variances of model parameters. Values close to 1 indicate that the chains have
+converged to similar distributions.  Aim for less than about 1.05 for all
+parameters.
+
+```{r summary, echo = FALSE}
+ptable <- draws_sum %>% 
+  mutate_if(is.numeric, ~formatC(., 3)) %>% 
+  rename(parameter = variable) %>%
+  mutate("90% CI" = paste("(", q5, ", ", q95, ")", 
+                          sep = "")) %>%
+  select(parameter, mean, median, sd, mad, "90% CI", ess_bulk, ess_tail, rhat)
+
+ptable %>% 
+  knitr::kable(caption = "Summary of model parameter estimates.")
+```
+
+
+# MCMC diagnostic plots
+
+These plots assess whether all of the chains have converged to a single,
+stationary distribution.
+
+## Rhat
+
+```{r rhat, echo = params$include_code}
+rhats <- draws_sum$rhat
+names(rhats) <- draws_sum$variable
+rhat_plot <- mcmc_rhat(rhats) + yaxis_text()
+```
+
+```{r eval = params$include_plots, include = params$include_plots, echo = F, message = FALSE}
+# show plot in HTML output
+rhat_plot
+```
+
+```{r save_rhat_plot, include = FALSE, eval = params$run_mrggsave, message = FALSE}
+# save plots to disk
+mrggsave(
+  rhat_plot, 
+  script = params$script,
+  stem = "{modelName}-rhat"
+)
+```
+
+## Pairs
+
+Look for any strong correlation between parameters, indicating possible
+over-parameterisation.
+
+```{r param_pairs_plots, echo = params$include_code, message=FALSE}
+names_theta <- variables(draws_param_thin2) %>% str_subset("^THETA")
+if (is.null(params$theta_cov)) {
+  names_fixed_noncov <- names_theta
+} else {
+  names_fixed_cov <- intersect(
+    names_theta,
+    paste0("THETA[", params$theta_cov, "]")
+  )
+  names_fixed_noncov <- setdiff(names_theta, names_fixed_cov)
+}
+
+names_random <- variables(draws_param_thin2) %>%
+  str_subset("^OMEGA|^SIGMA") %>% 
+  # remove off-diagonals for pairs plots
+  str_subset("\\[(\\d+),\\1\\]")
+
+p_fixed_noncov <- mcmc_pairs(draws_param_thin2, pars = names_fixed_noncov)
+p_random <- mcmc_pairs(draws_param_thin2, pars = names_random)
+if (!is.null(params$theta_cov)) {
+  p_fixed_cov <- mcmc_pairs(draws_param_thin2, pars = names_theta_cov)
+}
+```
+
+```{r include_param_pairs, eval=params$include_plots, include=params$include_plots, echo=F, message=FALSE, fig.width=9, fig.height=9}
+p_fixed_noncov
+if (!is.null(params$theta_cov)) p_fixed_cov
+p_random
+```
+
+```{r save_param_pairs, include = FALSE, eval = params$run_mrggsave, message=FALSE}
+mrggsave(
+  p_fixed_noncov,
+  stem = c(params$run, "pairs-fixed-noncov"),
+  width = 9,
+  height = 9
+)
+if (!is.null(params$theta_cov)) {
+  mrggsave(
+    p_fixed_cov,
+    stem = c(params$run, "pairs-fixed-cov"),
+    width = 9,
+    height = 9
+  )
+}
+mrggsave(
+  p_random,
+  stem = c(params$run, "pairs-random"),
+  width = 9,
+  height = 9
+)
+```
+
+```{r rm_param_pairs, include=F}
+rm(p_fixed_noncov, p_random)
+if (!is.null(params$theta_cov)) rm(p_fixed_cov)
+```
+
+## ESS
+
+```{r ess_bulk, echo = params$include_code}
+ess_bulk <- draws_sum$ess_bulk
+names(ess_bulk) <- draws_sum$variable
+ess_bulk_ratios <- ess_bulk / (n_iter * n_chains)
+ess_bulk_plot <- mcmc_neff(ess_bulk_ratios) + yaxis_text() +
+  labs(title = "Bulk ESS ratios")
+```
+```{r eval = params$include_plots, include = params$include_plots, echo = F, message = FALSE}
+# show plot in HTML output
+ess_bulk_plot
+```
+
+```{r ess_tail, echo = params$include_code}
+ess_tail <- draws_sum$ess_tail
+names(ess_tail) <- draws_sum$variable
+ess_tail_ratios <- ess_tail / (n_iter * n_chains)
+ess_tail_plot <- mcmc_neff(ess_tail_ratios) + yaxis_text() +
+  labs(title = "Tail ESS ratios")
+```
+```{r eval = params$include_plots, include = params$include_plots, echo = F, message = FALSE}
+# show plot in HTML output
+ess_tail_plot
+```
+
+```{r save_ess_plots, include = FALSE, eval = params$run_mrggsave, message = FALSE}
+mrggsave(
+  ess_bulk_plot, 
+  stem = "{modelName}-ess-bulk"
+)
+mrggsave(
+  ess_tail_plot, 
+  stem = "{modelName}-ess-tail"
+)
+```
+
+## ESS vs sample
+
+Plots Bulk and Tail ESS versus iteration to check that ESS increases linearly.
+
+```{r ess_vs_sample_plots, echo = params$include_code, message=FALSE}
+# param_array <- as_draws_array(draws_param)
+p <- map(variables(draws_param_plot), function(.x) {
+  plot_change_ess(draws_param, .x)
+}) %>%
+  purrr::compact() # remove NULL elements of list
+
+pESSsample <- p
+```
+
+```{r include_ess_vs_sample_plots, eval=params$include_plots, include=params$include_plots, echo=F, message=FALSE}
+p
+```
+
+```{r save_ess_vs_sample_plots, include = FALSE, eval = params$run_mrggsave, message=FALSE}
+mrggsave(
+  p,
+  stem = c(params$run, "ess-vs-sample"),
+  width = 5,
+  height = 5
+)
+```
+
+```{r rm_ess_vs_sample, include=F}
+rm(p)
+```
+
+## ESS vs quantile
+
+Plots Bulk and Tail ESS versus quantile to better diagnose areas of the
+distributions that the iterative algorithm fails to explore efficiently.
+
+```{r ess_vs_quantile_plots, echo = params$include_code, message=FALSE}
+p <- map(variables(draws_param_plot), function(.x) {
+  plot_quantile_ess(draws_param_plot, .x)
+}) # %>%
+# purrr::compact() # remove NULL elements of list
+
+pESSquantile <- p
+```
+
+```{r include_ess_vs_quantile_plots, eval=params$include_plots, include=params$include_plots, echo=F, message=FALSE}
+p
+```
+
+```{r save_ess_vs_quantile_plots, include = FALSE, eval = params$run_mrggsave, message=FALSE}
+mrggsave(
+  p,
+  stem = c(params$run, "ess-vs-quantile"),
+  width = 5,
+  height = 5
+)
+```
+
+```{r rm_ess_vs_quantile, include=F}
+rm(p)
+```
+
+
+
+## History plots
+
+```{r history, echo = params$include_code}
+mcmc_history_plots <- mcmc_history(
+  draws_param_thin,
+  pars = pars, 
+  nParPerPage = n_per_page,
+  myTheme = this_theme,
+  np = NULL
+)
+```                                   
+```{r eval = params$include_plots, include = params$include_plots, echo = F, message = FALSE}
+# show plot in HTML output
+mcmc_history_plots
+```
+
+```{r save_history_plots, include = FALSE, eval = params$run_mrggsave, message = FALSE}
+mrggsave(
+  mcmc_history_plots, 
+  stem = "{modelName}-mcmc-history", 
+  width = 5,
+  height = 7
+)
+```
+
+## Rank plots
+
+```{r rank, echo = params$include_code}
+mcmc_rank_plots <- mcmc_rank(
+  draws_param_plot,
+  pars = pars, 
+  nParPerPage = n_per_page,
+  myTheme = this_theme
+)
+```                                   
+```{r eval = params$include_plots, include = params$include_plots, echo = F, message = FALSE}
+# show plot in HTML output
+mcmc_rank_plots
+```
+```{r save_rank_plots, include = FALSE, eval = params$run_mrggsave, message = FALSE}
+mrggsave(
+  mcmc_rank_plots, 
+  stem = "{modelName}-mcmc-rank", 
+  width = 5,
+  height = 7
+)
+```
+
+## Density plots
+
+```{r density, echo = params$include_code}
+mcmc_density_chain_plots <- mcmc_density(
+  draws_param_plot,
+  pars = pars, 
+  nParPerPage = n_per_page,
+  byChain = TRUE, 
+  myTheme = this_theme)
+```
+```{r eval = params$include_plots, include = params$include_plots, echo = F, message = FALSE}
+# show plot in HTML output
+mcmc_density_chain_plots
+```
+
+```{r density2, echo = params$include_code}
+mcmc_density_plots <- mcmc_density(
+  draws_param_plot,
+  pars = pars, 
+  nParPerPage = n_per_page, 
+  myTheme = this_theme
+)
+```
+```{r eval = params$include_plots, include = params$include_plots, echo = F, message = FALSE}
+# show plot in HTML output
+mcmc_density_plots
+```
+
+```{r save_density_plots, include = FALSE, eval = params$run_mrggsave, message = FALSE}
+mrggsave(
+  mcmc_density_chain_plots, 
+  stem = "{modelName}-density-chain", 
+  width = 5,
+  height = 7
+)
+mrggsave(
+  mcmc_density_plots, 
+  stem = "{modelName}-density", 
+  width = 5,
+  height = 7
+)
+```
+
+# Session details
+
+It is considered good practice to include these details at the end of all rmd scripts
+
+```{r details, include = TRUE}
+Sys.getenv("AMI_NAME")
+sessioninfo::session_info()
+bbr::bbi_version()
+```

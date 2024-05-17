@@ -1,0 +1,155 @@
+---
+title: "Model Summary"
+output: html_document
+---
+
+```{r libraries, include = FALSE}
+library(bbr)
+library(bbr.bayes)
+library(tidyverse)
+library(here)
+library(pmtables)
+
+source(here("script/functions-model.R"))
+
+knitr::opts_chunk$set(
+  out.width = 500, 
+  out.height = 750
+)
+```
+
+```{r directories, include=F}
+### Directories ----------------------------
+figDir <- here("deliv", "figure")
+tabDir <- here("deliv", "table")
+```
+
+```{r echo = FALSE, results = "asis"}
+cat("## Run log")
+```
+
+```{r }
+# create the raw run log
+MODEL_DIR <- here("model/pk")
+
+log_df <- run_log(
+  MODEL_DIR,
+  .recurse = FALSE,
+  .include = c(1000, 1001, 1100)
+) %>% 
+  add_config() #%>%
+  #add_summary()  # not yet implemented for NONMEM Bayes
+```
+
+```{r echo = FALSE, results = "asis"}
+# These two are helpers for doing some
+# automatic QC on all the models in log_df
+
+# check if model or data files have changed (from bbr)
+check_up_to_date(log_df)
+
+# check if any rogue tags that aren't in tags.yaml (from functions-model.R)
+tags_ok <- audit_tags(log_df, yaml::read_yaml(here::here("script", "tags.yaml")))
+if (all(tags_ok)) cat("All tags are valid.\n")
+```
+
+```{r}
+# format log_df for display
+log_df %>% 
+  collapse_to_string(based_on, tags, notes) %>%
+  select(run, based_on, description, tags, notes) %>%
+  knitr::kable()
+```
+
+### Tags diff
+
+_Optionally view the tags that were added or removed for each model._
+
+```{r}
+# format log_df for display
+log_df %>% 
+  add_tags_diff() %>%
+  format_tags_diff() %>%
+  select(run, based_on, description, tags, tags_diff) %>%
+  knitr::kable()
+```
+
+# Modeling notes
+
+## Model 1000
+
+Check trace plots and MCMC diagnostics
+```{r 1000_trace}
+knitr::include_graphics(file.path(figDir, "report/1000/1000-mcmc-history.pdf"))
+```
+
+```{r 1000_mcmc}
+read_model(file.path(MODEL_DIR, 1000)) %>% 
+  read_fit_model() %>% 
+  posterior::summarize_draws() %>% 
+  filter(!is.na(rhat)) %>% 
+  mutate(across(c(ess_bulk, ess_tail), round)) %>% 
+  select(variable, rhat, ess_bulk, ess_tail) %>%
+  knitr::kable()
+```
+
+
+Rather low ESS for some parameters.
+
+## Model 1001
+
+Check trace plots and MCMC diagnostics after running with NUTS
+
+```{r 1001_trace}
+knitr::include_graphics(file.path(figDir, "report/1001/1001-mcmc-history.pdf"))
+```
+
+```{r 1001_mcmc, out.width = NULL, out.height = NULL}
+tab <- readLines(here("deliv/table/report/pk-param-base-fixed-mcmc.tex"))
+class(tab) <- c("stable")
+st_as_image(tab)
+tab <- readLines(here("deliv/table/report/pk-param-base-random-mcmc.tex"))
+class(tab) <- c("stable")
+st_as_image(tab)
+```
+
+These are much improved. Overall diagnostics look good, so select 1001 as the
+final base model.
+
+```{r 1001_mpde}
+knitr::include_graphics(file.path(figDir, "report/1001/1001-npde-pred-time-tad.pdf"))
+```
+
+# Comparing final model to base model
+
+```{r}
+mod1001 <- read_model(file.path(MODEL_DIR, 1001))
+mod1100 <- read_model(file.path(MODEL_DIR, 1100))
+
+tags_diff(mod1001, mod1100)
+```
+
+```{r, results = "asis"}
+model_diff(mod1001, mod1100)
+```
+
+
+# Final model - 1100
+
+```{r 1100_params, out.width = NULL, out.height = NULL}
+tab <- readLines(here("deliv/table/report/pk-param-final-fixed.tex"))
+class(tab) <- c("stable")
+st_as_image(tab)
+tab <- readLines(here("deliv/table/report/pk-param-final-random.tex"))
+class(tab) <- c("stable")
+st_as_image(tab)
+```
+
+```{r 1100_mcmc, out.width = NULL, out.height = NULL}
+tab <- readLines(here("deliv/table/report/pk-param-final-fixed-mcmc.tex"))
+class(tab) <- c("stable")
+st_as_image(tab)
+tab <- readLines(here("deliv/table/report/pk-param-final-random-mcmc.tex"))
+class(tab) <- c("stable")
+st_as_image(tab)
+```

@@ -1,0 +1,211 @@
+Starting NMTRAN
+  
+ WARNINGS AND ERRORS (IF ANY) FOR PROBLEM    1
+             
+ (WARNING  2) NM-TRAN INFERS THAT THE DATA ARE POPULATION.
+
+ (MU_WARNING 26) DATA ITEM(S) USED IN DEFINITION OF MU_(S) SHOULD BE CONSTANT FOR INDIV. REC.:
+  WT
+             
+ (WARNING  121) INTERACTION IS IMPLIED WITH EM/BAYES ESTIMATION METHODS
+
+ LIM VALUES MAXLIM ASSESSED BY NMTRAN: 1,2,3,4,5,6,7,8,10,11,13,15,16        
+  
+Note: Analytical 2nd Derivatives are constructed in FSUBS but are never used.
+      You may insert $ABBR DERIV2=NO after the first $PROB to save FSUBS construction and compilation time
+  
+Recompiling certain components
+ Minimum value for a list item exceeded:      1
+
+ USING PARALLEL PROFILE 1000-4.pnm
+ MPI TRANSFER TYPE SELECTED
+Building NONMEM Executable
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+Starting MPI version of nonmem execution ...
+Manager Location ip-10-128-15-105//data/bbr-nonmem-poppk-bayes/model/pk/1000/1000-4
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+License Registered to: Metrum Research Group
+Expiration Date:    14 JUL 2024
+Current Date:       12 MAY 2024
+Days until program expires :  62
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+
+
+ Chain Method Processing
+
+
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+
+
+ MCMC Bayesian Analysis
+ MONITORING OF SEARCH:
+
+ Burn-in Mode
+ iteration         -500 MCMCOBJ=    38723.745462981198     
+ iteration         -490 MCMCOBJ=    28787.047507401418     
+ iteration         -480 MCMCOBJ=    28581.349818708291     
+ iteration         -470 MCMCOBJ=    28452.296473495899     
+ iteration         -460 MCMCOBJ=    28395.787928989321     
+ iteration         -450 MCMCOBJ=    28415.845637781687     
+ iteration         -440 MCMCOBJ=    28440.926356960015     
+ iteration         -430 MCMCOBJ=    28410.913861928151     
+ iteration         -420 MCMCOBJ=    28468.114069136351     
+ iteration         -410 MCMCOBJ=    28360.740433340416     
+ iteration         -400 MCMCOBJ=    28317.798792098900     
+ iteration         -390 MCMCOBJ=    28488.300251675853     
+ iteration         -380 MCMCOBJ=    28463.026106123965     
+ iteration         -370 MCMCOBJ=    28451.762991048825     
+ iteration         -360 MCMCOBJ=    28426.152054264043     
+ iteration         -350 MCMCOBJ=    28394.984889418669     
+ iteration         -340 MCMCOBJ=    28413.347638803614     
+ iteration         -330 MCMCOBJ=    28406.682397046738     
+ iteration         -320 MCMCOBJ=    28450.720928950497     
+ iteration         -310 MCMCOBJ=    28435.580123072603     
+ iteration         -300 MCMCOBJ=    28432.725925805542     
+ iteration         -290 MCMCOBJ=    28458.974255559649     
+ iteration         -280 MCMCOBJ=    28473.164131008318     
+ iteration         -270 MCMCOBJ=    28426.694474965043     
+ iteration         -260 MCMCOBJ=    28313.511025293061     
+ iteration         -250 MCMCOBJ=    28346.389137231734     
+ iteration         -240 MCMCOBJ=    28466.244390999695     
+ iteration         -230 MCMCOBJ=    28430.149810078048     
+ iteration         -220 MCMCOBJ=    28393.101748494097     
+ iteration         -210 MCMCOBJ=    28385.999011571894     
+ iteration         -200 MCMCOBJ=    28488.055384501302     
+ iteration         -190 MCMCOBJ=    28491.321057780249     
+ iteration         -180 MCMCOBJ=    28440.109985344821     
+ iteration         -170 MCMCOBJ=    28457.182996183852     
+ iteration         -160 MCMCOBJ=    28495.115529095423     
+ iteration         -150 MCMCOBJ=    28471.894215030516     
+ iteration         -140 MCMCOBJ=    28396.529731936920     
+ iteration         -130 MCMCOBJ=    28431.208387799910     
+ iteration         -120 MCMCOBJ=    28515.386467198387     
+ iteration         -110 MCMCOBJ=    28401.954898269767     
+ iteration         -100 MCMCOBJ=    28547.960380542074     
+ iteration          -90 MCMCOBJ=    28458.313477079661     
+ iteration          -80 MCMCOBJ=    28485.164561143662     
+ iteration          -70 MCMCOBJ=    28478.329202847486     
+ iteration          -60 MCMCOBJ=    28351.595415229654     
+ iteration          -50 MCMCOBJ=    28466.753236528701     
+ iteration          -40 MCMCOBJ=    28448.266404633301     
+ iteration          -30 MCMCOBJ=    28386.412982539139     
+ iteration          -20 MCMCOBJ=    28426.116420038448     
+ iteration          -10 MCMCOBJ=    28477.643838676671     
+ Sampling Mode
+ iteration            0 MCMCOBJ=    28328.657337501871     
+ iteration           10 MCMCOBJ=    28402.398437925083     
+ iteration           20 MCMCOBJ=    28402.722959905048     
+ iteration           30 MCMCOBJ=    28440.332535742389     
+ iteration           40 MCMCOBJ=    28423.000452618489     
+ iteration           50 MCMCOBJ=    28389.672369795717     
+ iteration           60 MCMCOBJ=    28319.133324017985     
+ iteration           70 MCMCOBJ=    28399.917759647349     
+ iteration           80 MCMCOBJ=    28472.534029789484     
+ iteration           90 MCMCOBJ=    28514.870499479421     
+ iteration          100 MCMCOBJ=    28443.093922620013     
+ iteration          110 MCMCOBJ=    28428.616915722760     
+ iteration          120 MCMCOBJ=    28342.755566067732     
+ iteration          130 MCMCOBJ=    28488.837724830428     
+ iteration          140 MCMCOBJ=    28458.029809290299     
+ iteration          150 MCMCOBJ=    28450.500662763876     
+ iteration          160 MCMCOBJ=    28473.436601584017     
+ iteration          170 MCMCOBJ=    28460.871723646913     
+ iteration          180 MCMCOBJ=    28462.254863333746     
+ iteration          190 MCMCOBJ=    28495.199638107068     
+ iteration          200 MCMCOBJ=    28453.820967676620     
+ iteration          210 MCMCOBJ=    28443.920459505582     
+ iteration          220 MCMCOBJ=    28369.049675137725     
+ iteration          230 MCMCOBJ=    28473.580834509718     
+ iteration          240 MCMCOBJ=    28489.502327520084     
+ iteration          250 MCMCOBJ=    28480.435115607121     
+ iteration          260 MCMCOBJ=    28378.370914064359     
+ iteration          270 MCMCOBJ=    28403.873742970070     
+ iteration          280 MCMCOBJ=    28378.511489894030     
+ iteration          290 MCMCOBJ=    28475.496666896641     
+ iteration          300 MCMCOBJ=    28449.767664307106     
+ iteration          310 MCMCOBJ=    28490.928895657635     
+ iteration          320 MCMCOBJ=    28404.931953209551     
+ iteration          330 MCMCOBJ=    28465.326187230843     
+ iteration          340 MCMCOBJ=    28432.192546664875     
+ iteration          350 MCMCOBJ=    28452.551048825415     
+ iteration          360 MCMCOBJ=    28523.981782867169     
+ iteration          370 MCMCOBJ=    28472.604512264243     
+ iteration          380 MCMCOBJ=    28376.820082575588     
+ iteration          390 MCMCOBJ=    28565.998233894574     
+ iteration          400 MCMCOBJ=    28513.745575678535     
+ iteration          410 MCMCOBJ=    28539.153830840340     
+ iteration          420 MCMCOBJ=    28419.053644217129     
+ iteration          430 MCMCOBJ=    28507.122877722461     
+ iteration          440 MCMCOBJ=    28567.319957244454     
+ iteration          450 MCMCOBJ=    28550.241758030072     
+ iteration          460 MCMCOBJ=    28465.832028421581     
+ iteration          470 MCMCOBJ=    28494.567638446933     
+ iteration          480 MCMCOBJ=    28461.873138033345     
+ iteration          490 MCMCOBJ=    28471.557866294104     
+ iteration          500 MCMCOBJ=    28439.698252136161     
+ iteration          510 MCMCOBJ=    28470.364224955476     
+ iteration          520 MCMCOBJ=    28445.107620906365     
+ iteration          530 MCMCOBJ=    28372.672711571831     
+ iteration          540 MCMCOBJ=    28371.327226563801     
+ iteration          550 MCMCOBJ=    28454.902594334857     
+ iteration          560 MCMCOBJ=    28525.390487823097     
+ iteration          570 MCMCOBJ=    28458.168942039025     
+ iteration          580 MCMCOBJ=    28469.592004423408     
+ iteration          590 MCMCOBJ=    28460.547469430741     
+ iteration          600 MCMCOBJ=    28466.529184009491     
+ iteration          610 MCMCOBJ=    28381.914010264896     
+ iteration          620 MCMCOBJ=    28426.304646831253     
+ iteration          630 MCMCOBJ=    28488.713702366342     
+ iteration          640 MCMCOBJ=    28416.739033609378     
+ iteration          650 MCMCOBJ=    28394.957288201644     
+ iteration          660 MCMCOBJ=    28532.879890575321     
+ iteration          670 MCMCOBJ=    28519.149714472071     
+ iteration          680 MCMCOBJ=    28489.235432528141     
+ iteration          690 MCMCOBJ=    28431.583108481911     
+ iteration          700 MCMCOBJ=    28386.692129207575     
+ iteration          710 MCMCOBJ=    28450.468872914589     
+ iteration          720 MCMCOBJ=    28499.099883185783     
+ iteration          730 MCMCOBJ=    28443.378402721501     
+ iteration          740 MCMCOBJ=    28470.261069019882     
+ iteration          750 MCMCOBJ=    28418.103819433269     
+ iteration          760 MCMCOBJ=    28536.000604654411     
+ iteration          770 MCMCOBJ=    28451.621033954725     
+ iteration          780 MCMCOBJ=    28425.687647075170     
+ iteration          790 MCMCOBJ=    28494.922272158772     
+ iteration          800 MCMCOBJ=    28380.887984795252     
+ iteration          810 MCMCOBJ=    28418.772995528707     
+ iteration          820 MCMCOBJ=    28367.557907324932     
+ iteration          830 MCMCOBJ=    28395.195444012523     
+ iteration          840 MCMCOBJ=    28457.995547045790     
+ iteration          850 MCMCOBJ=    28475.887873963369     
+ iteration          860 MCMCOBJ=    28426.892839766817     
+ iteration          870 MCMCOBJ=    28453.854081590885     
+ iteration          880 MCMCOBJ=    28485.788097702756     
+ iteration          890 MCMCOBJ=    28376.488145248131     
+ iteration          900 MCMCOBJ=    28416.595143055707     
+ iteration          910 MCMCOBJ=    28430.342894977210     
+ iteration          920 MCMCOBJ=    28422.302968907836     
+ iteration          930 MCMCOBJ=    28439.068414297635     
+ iteration          940 MCMCOBJ=    28460.496601801220     
+ iteration          950 MCMCOBJ=    28472.538594414753     
+ iteration          960 MCMCOBJ=    28396.285738537124     
+ iteration          970 MCMCOBJ=    28460.834562673186     
+ iteration          980 MCMCOBJ=    28427.205035163730     
+ iteration          990 MCMCOBJ=    28388.846713818370     
+ iteration         1000 MCMCOBJ=    28451.403978464175     
+ Elapsed estimation  time in seconds:    70.79
+ BURN-IN WAS NOT TESTED FOR CONVERGENCE
+ STATISTICAL PORTION WAS COMPLETED
+
+ Elapsed covariance  time in seconds:     0.00
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+ Elapsed postprocess time in seconds:     2.58
+ Elapsed finaloutput time in seconds:     0.29
+Done with nonmem execution

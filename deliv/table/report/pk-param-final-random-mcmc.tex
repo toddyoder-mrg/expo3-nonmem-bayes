@@ -1,0 +1,33 @@
+\setlength{\tabcolsep}{5pt} 
+\begin{threeparttable}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}[h]{lcccc}
+\hline
+ &  & $\hat{R}$ & ESS bulk & ESS tail \\
+\hline
+\multicolumn{5}{l}{\textbf{Interindividual variance parameters}}\\%--pmtables-insert-panel
+IIV-KA & $\Omega_{11}$ & 1.00 & 864 & 1359 \\
+IIV-V2/F & $\Omega_{22}$ & 1.01 & 594 & 943 \\
+IIV-CL/F & $\Omega_{33}$ & 1.00 & 645 & 1288 \\
+\hline \multicolumn{5}{l}{\textbf{Interindividual covariance parameters}}\\%--pmtables-insert-panel
+V2/F-KA & $\Omega_{21}$ & 1.01 & 397 & 895 \\
+CL/F-KA & $\Omega_{31}$ & 1.00 & 492 & 997 \\
+CL/F-V2/F & $\Omega_{32}$ & 1.00 & 664 & 1208 \\
+\hline \multicolumn{5}{l}{\textbf{Residual variance}}\\%--pmtables-insert-panel
+Proportional & $\Sigma_{11}$ & 1.00 & 2391 & 1501 \\
+\hline
+\end{tabular}
+\end{threeparttable}
+ 
+\vspace{0.67cm}
+ 
+\begin{minipage}{1\linewidth}
+\linespread{1.1}\selectfont
+\rule{1\linewidth}{0.4pt}
+\vspace{0.02cm}
+Abbreviations: 
+  ESS = effective sample size;
+  $\hat{R}$ = Gelman-Rubin diagnostic \newline
+Source code: pk-final-model-table.R \newline
+Source file: pk-param-final-random-mcmc.tex \newline
+\end{minipage}

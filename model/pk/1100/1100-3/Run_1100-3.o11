@@ -1,0 +1,9 @@
+time="2024-05-12T08:31:45-04:00" level=info msg="Successfully loaded default configuration from /data/bbr-nonmem-poppk-bayes/model/pk/1100/1100-3/bbi.yaml"
+time="2024-05-12T08:31:45-04:00" level=info msg="Beginning Local Path"
+time="2024-05-12T08:31:45-04:00" level=info msg="A total of 1 models have completed the initial preparation phase"
+time="2024-05-12T08:31:45-04:00" level=info msg="[1100-3] Beginning local work phase"
+time="2024-05-12T10:08:47-04:00" level=info msg="[1100-3] Beginning cleanup phase"
+time="2024-05-12T10:08:47-04:00" level=info msg="[1100-3] Cleanup completed"
+time="2024-05-12T10:08:47-04:00" level=info msg="Waiting for any post execution hooks to finish"
+time="2024-05-12T10:08:47-04:00" level=info msg="\r1 models completed in 1h37m2.541155599s"
+

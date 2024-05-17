@@ -1,0 +1,523 @@
+---
+title: "Model Management"
+subtitle: > 
+  Example model submission workflow with bbr.bayes. 
+#image: bbr-strip.png
+order: 500
+categories: 
+- bbr
+- model management
+- nonmem
+fig-cap-location: margin
+title-block-banner: "#16b1bf"
+title-block-banner-color: "white"
+toc: true
+toc-depth: 2
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, 
+  cache = TRUE, 
+  autodep = TRUE, 
+  comment = '.', 
+  message = FALSE,
+  warning = FALSE,
+  out.width = 500, 
+  out.height = 750
+)
+```
+
+# Introduction
+
+Managing model development processes in a traceable and reproducible manner can be a significant challenge. At Metrum Research Group (MetrumRG), we use `bbr` and `bbr.bayes` to streamline this process for fitting Bayesian (Bayes) models using NONMEM®. `bbr` and `bbr.bayes` are R packages developed by MetrumRG that serve three primary purposes:
+
+* Submit NONMEM® models, particularly for execution in parallel and/or on a high-performance compute (HPC) cluster (e.g. {{< var pages.about_metworx >}}).
+* Parse NONMEM® outputs into R objects to facilitate model evaluation and diagnostics in R.
+* Annotate the model development process for easier and more reliable traceability and reproducibility.
+
+This page demonstrates the following `bbr` and `bbr.bayes` functionality:
+
+* Create a Bayes NONMEM® model either from scratch or based on a model previously developed using another estimation method such as FOCE
+* Submit a model
+* Markov Chain Monte Carlo (MCMC)  diagnostics
+* Model diagnostics
+* Iterative model development
+* Annotation of models with tags, notes, etc.,
+
+
+# Tools used
+
+<hr />
+
+## MetrumRG packages
+{{< var used.bbr >}}
+{{< var used.bbrbayes >}}
+
+## CRAN packages
+{{< var used.dplyr >}}
+
+# Outline
+
+<hr />
+
+This page details a range of tasks typically performed throughout the modeling process such as defining, submitting, and annotating models. Our scientists run this code in a scratch pad style script (i.e., {{< var public_expo_repo.model_mang >}}) because it isn't necessary for the entire coding history for each model to persist. Here, the code used each step of the process is provided as a reference, and a runnable version of this page is available in our Github repository:  {{< var public_expo_repo.model_mang_demo >}}. 
+
+If you're a new `bbr` user, we recommend you read through the {{< var pkg_resource.bbr_getting_started >}} before trying to run any code. This vignette includes some setup and configuration (e.g., making sure `bbr` can find your NONMEM® installation) that needs to be done. 
+
+Please note that **`bbr` doesn't edit the model structure in your control stream.** This page walks through a sequence of models that might evolve during a Bayes modeling project. All modifications to the control streams were made directly by the user in the control stream. Below we include comments asking you to edit your control streams manually. 
+
+# Set up
+
+<hr />
+
+Load required packages and set file paths to your model and figure directories. 
+
+```{r}
+library(bbr)
+library(bbr.bayes)
+library(dplyr)
+library(here)
+
+MODEL_DIR <- here("model", "pk")
+MODEL_DIR_sim <- here("script", "model")
+FIGURE_DIR <- here("deliv", "figure")
+```
+
+```{r, eval = TRUE, include = FALSE}
+# This section is not visible in the article version of this script.
+# However, RUN THIS CHUNK if you would like to step through this code interactively.
+#
+# Most importantly, it creates a new model directory with your name
+# so that you can modify and submit these models without touching to originals.
+
+# create scratch model dir for user
+orig_model_dir <- here("model", "pk")
+user_name <- Sys.getenv("USER")
+if (!nzchar(user_name)) user_name <- "user"
+MODEL_DIR <- paste(orig_model_dir, user_name, sep = "-")
+if (fs::dir_exists(MODEL_DIR)) fs::dir_delete(MODEL_DIR)
+fs::dir_create(MODEL_DIR)
+
+# copy through starting files
+fs::file_copy(file.path(orig_model_dir, "bbi.yaml"), file.path(MODEL_DIR, "bbi.yaml"))
+fs::file_copy(file.path(orig_model_dir, "102.ctl"), file.path(MODEL_DIR, "102.ctl"))
+fs::file_copy(file.path(orig_model_dir, "102.yaml"), file.path(MODEL_DIR, "102.yaml"))
+fs::file_copy(file.path(orig_model_dir, "1000a.ctl"), file.path(MODEL_DIR, "1000a.ctl"))
+
+# If on Metworx, ping the grid to bring up a compute node.
+# If not on Metworx, set mode to "local" for easier interactive model submission.
+if (nzchar(Sys.getenv("METWORX_VERSION"))) {
+  system("echo 'sleep 10' | qsub")
+} else {
+  options("bbr.bbi_exe_mode" = "local")  
+}
+
+# Check that bbi is installed
+if (!nzchar(bbi_version())) use_bbi()
+
+# This function is used to "update" your control streams by modifying them
+# to match the relevant control stream in the original model directory.
+update_demo_ctl <- function(.mod, orig_model_dir = here::here("model", "pk")){
+  
+  new_ctl_path <- get_model_path(.mod)
+  
+  mod_to_copy <- bbr::read_model(file.path(orig_model_dir, bbr::get_model_id(.mod)))
+  orig_ctl_path <- get_model_path(mod_to_copy)
+  
+  # overwrite ctl
+  if(fs::file_exists(new_ctl_path)) fs::file_delete(new_ctl_path)
+  fs::file_copy(orig_ctl_path, dirname(new_ctl_path))
+  
+  return(invisible(.mod))
+}
+```
+
+
+# Model creation and submission
+
+<hr />
+
+## Previous FOCE model
+
+This example picks up at the end of a completed, base-model development process.
+Assume we have a base model developed in another estimation method like FOCE.
+Here, we actually use model 102 from {{< var expo1_pages.main >}}.
+
+```{r}
+mod102 <- read_model(file.path(MODEL_DIR, 102))
+```
+
+## Copy FOCE model to a Bayesian model object
+
+This model is now copied to a new control stream, `1000.ctl`, using the function
+`bbr.bayes::copy_model_as_nmbayes()`. We construct the `bbr` model object and
+replace one of the model tags after reading in the tags file. Model tags are
+described in more detail [here](https://merge.metrumrg.com/expo/expo1-nonmem-foce/posts/model-management-demo.html#using-tags).
+
+The first argument to `copy_model_as_nmbayes()` is the model object read in above, and the second is a path to your new model control stream _without the file extension_.
+
+```{r, eval = TRUE}
+TAGS <- yaml::read_yaml(here("script", "tags.yaml"))
+mod1000 <- copy_model_as_nmbayes(
+  mod102,
+  file.path(MODEL_DIR, 1000),
+  .inherit_tags = TRUE
+) %>%
+  replace_tag(TAGS$foce, TAGS$bayes)
+```
+
+### Edit your control stream
+
+The model structure is copied exactly from the FOCE model to the new Bayes model, but there are a couple of changes we need to make to the control stream:
+
+- Add priors
+- Define settings for the MCMC chains, including the number of chains, number of samples, and how initial values are generated
+
+We walk through how to make these changes, but the specific settings for your model is out of scope of this Expo. For those topics, we refer readers to the following publication:
+
+> Johnston CK, Waterhouse T, Wiens M, Mondick J, French J, Gillespie WR. Bayesian estimation in NONMEM. *CPT Pharmacometrics Syst Pharmacol.* 2023; 00: 1-16. [doi.org/10.1002/psp4.13088](https://doi.org/10.1002/psp4.13088)
+
+You need to manually edit the new control stream with these modifications.  If you're using RStudio (or any other editor supported by `utils::file.edit()`), you can easily open your control stream for editing with the following:
+
+```{r, eval = TRUE}
+mod1000 %>% open_model_file()
+```
+
+```{r overwrite ctl 1, eval = TRUE, include = FALSE}
+# In place of manually editing the control steam, run this function to update from example models contained in this repo
+update_demo_ctl(mod1000)
+```
+
+The following lines are automatically added to the control stream, replacing the previous `$ESTIMATION` block:
+
+```
+; TODO: This model was copied by bbr.bayes::copy_model_as_nmbayes().
+;       nmbayes models require a METHOD=CHAIN estimation record and a
+;       METHOD=BAYES or METHOD=NUTS estimation record. The records
+;       below are meant as a starting point.  At the very least, you
+;       need to adjust the number of iterations (see NITER option in
+;       the second $EST block), but please review all options
+;       carefully.
+;
+;       See ?bbr.bayes::bbr_nmbayes and the NONMEM docs for details.
+$EST METHOD=CHAIN FILE={model_id}.chn NSAMPLE=4 ISAMPLE=0 SEED=1
+     CTYPE=0 IACCEPT=0.3 DF=10 DFS=0
+
+$EST METHOD=NUTS SEED=1 NBURN=250 NITER=NNNN
+     AUTO=2 CTYPE=0 OLKJDF=2 OVARF=1
+     NUTS_DELTA=0.95 PRINT=10 MSFO={model_id}.msf RANMETHOD=P PARAFPRINT=10000
+     BAYES_PHI_STORE=1
+```
+
+For this example, we run four separate chains for each model. Each chain uses a different random seed and a different set of initial estimates. The file `1000.ctl` is actually a template control stream that `bbr.bayes` uses to create the four separate model files. We make use of `METHOD=CHAIN` in NONMEM® to generate the initial estimates and, subsequently, read those values in when running each chain.
+
+`bbr.bayes` requires that the control stream includes a line with
+
+```$EST METHOD=CHAIN FILE=xyz.chn NSAMPLE=4 ISAMPLE=0 ...```
+
+where `xyz.chn` is the file with initial estimates for model number `xyz`, and `NSAMPLE` is the number of chains. `ISAMPLE` is set accordingly when running each chain. But, this initial value of `0` is set to generate the initial estimates rather than read them in.
+
+Also, `bbr` has several helper functions to help update your control stream. For example, the defined suffixes can be updated directly from your R console. The `update_model_id` function updates the defined suffixes from `{parent_mod}.{suffix}` to `{current_mod}.{suffix}` in your new control stream for the following file extensions: 
+
+- `.MSF` 
+- `.EXT`
+- `.CHN`
+- `.tab`
+- `par.tab`
+
+
+```{r, eval = TRUE}
+mod1000 <- update_model_id(mod1000)
+```
+
+You can easily look at the differences between control streams of a model and its parent model. The main differences here include new MU referencing, additional prior distributions, and updated the estimation method.
+
+```{r, eval = TRUE}
+model_diff(mod1000)
+```
+
+
+### The model YAML file
+
+Prior to creating your new Bayes model object with `copy_model_as_nmbayes()`, your model directory had three files: the FOCE model control stream, its associated `.yaml` file, and the `bbi.yaml` configuration file (discussed below).
+
+
+In addition to the new control stream, the `copy_model_as_nmbayes()` function creates a `1000.yaml` file in your model directory that automatically persists any tags, notes, and other model metadata. 
+
+
+While it's useful to know that this YAML file exists, you shouldn't need to interact with it directly (e.g., in the RStudio file tabs). Instead, `bbr` has a variety of functions (i.e., `add_tags()` and `add_notes()`, shown below) that work with the model object to edit the information in the YAML file from your R console. 
+
+### The `bbi.yaml` file
+
+Global settings used by `bbr` are stored in `bbi.yaml` (located in your model directory). You can read more in the `bbi.yaml` configuration file section of the ["Getting Started" vignette](https://metrumresearchgroup.github.io/bbr/articles/getting-started.html#bbi-yaml-configuration-file). 
+
+## Alternative: create a Bayesian model object from scratch
+
+While the previous example involved creating a new Bayes model based on a previous non-Bayes control stream, we can also create the model from scratch. This assumes we already have the control stream `1000a.ctl` in place.
+
+```{r eval = TRUE}
+mod1000a <- bbr::new_model(
+  file.path(MODEL_DIR, "1000a"),
+  .model_type = "nmbayes"
+)
+```
+
+From `bbr`'s perspective, this model is no different to the one we created earlier except this one has no parent model to compare with.
+
+## Submitting a model
+
+Now you have a model object, you can submit it to run with `bbr::submit_model()`.
+
+```{r, eval = TRUE}
+submit_model(
+  mod1000,
+  .bbi_args = list(threads = 2)
+)
+```
+
+Our model's four chains are now running on two threads each.
+There are numerous customizations available for submitting models. The following provides detailed information in the `bbr` documentation and R help: [`?submit_model`](https://metrumresearchgroup.github.io/bbr/reference/submit_model.html) and [`?modify_bbi_args`](https://metrumresearchgroup.github.io/bbr/reference/modify_bbi_args.html).
+
+### Monitoring submitted models
+
+For models submitted to the SGE grid (the default), you can use `system("qstat -f")` to check on your model jobs.
+
+In addition, `bbr` provides some helper functions that show the head and tail (by default, the first three and last five lines) of specified files and prints them to the console. For example, `tail_lst` shows the latest status of the `.lst` files for each of the four chains and, in this case, indicates the chains have finished running.
+
+```{r message = TRUE}
+tail_lst(mod1000)
+```
+
+Likewise, we can check the tail of the OUTPUT files. Again, these now indicate that the chains have finished running, but during the runs these will display the current iteration number.
+
+```{r message = TRUE}
+tail_output(mod1000)
+```
+
+# Summarize model outputs
+
+<hr />
+
+Once your model has run, you can start looking at the model outputs and creating diagnostics. The `bbr.bayes::read_fit_model()` function returns a `draws_array` object from the [posterior](https://mc-stan.org/posterior/reference/index.html) package.
+
+```{r}
+draws1000 <- read_fit_model(mod1000)
+class(draws1000)
+```
+
+There are many helpful functions provided by the [posterior](https://mc-stan.org/posterior/reference/index.html) package that allow you to interact with this object. For example, we can generate a summary of the posterior for the THETAs:
+
+```{r}
+posterior::subset_draws(draws1000, variable = "THETA") %>% 
+  posterior::summarize_draws()
+```
+
+Or we can generate MCMC diagnostic plots by also making use of the `bayesplot`   package:
+
+```{r}
+#| label: fig-trace-mod1000
+#| fig-cap: MCMC trace plots for model 1000.
+#| out.width: NULL
+#| out.height: NULL
+posterior::subset_draws(draws1000, variable = "THETA") %>% 
+  bayesplot::mcmc_trace()
+```
+
+Or we can convert the draws to a data frame to further process the results in other ways:
+
+```{r}
+draws_df <- posterior::as_draws_df(draws1000)
+draws_df %>%
+  as_tibble() %>% 
+  select(starts_with("THETA"), starts_with("."))
+```
+
+See the [posterior package](https://mc-stan.org/posterior/reference/index.html) for other helpers.
+
+During model development, MCMC and goodness-of-fit (GOF) diagnostic plots are typically generated to assess model fit. We demonstrate how to make these on the {{< var pages.model_diagnostics >}}, {{< var pages.mcmc_diagnostics >}}, and {{< var pages.parameterized_reports >}} pages. Our parameterized reports generate a browsable `.html` file including the model summary and all MCMC and GOF diagnostic plots (in your model directory). They also save out each plot to `.pdf` files in `deliv/figure/{run}/`. You can include any plots of particular interest here, for example, these trace plots:
+
+```{r, eval = TRUE}
+browseURL(file.path(FIGURE_DIR, "1000/1000-mcmc-history.pdf"))
+```
+
+# Annotating your model
+
+<hr />
+
+`bbr` has some great features that allow you to easily annotate your models. This helps you document your modeling process as you go, and can be easily retrieved later for creating "run logs" that describe the entire analysis. These fields are described in more detail in [MeRGE Expo 1](https://merge.metrumrg.com/expo/expo1-nonmem-foce/posts/model-management-demo.html#annotating-your-model). In this example, we make use of these annotations without further explanation.
+
+Based on the output of `summarize_draws()` above, the following provides an example of how you can add a note to your model, and then move on to testing a model using No-U-Turn Sampler (NUTS)  (model 1001 in the next section).
+
+```{r, eval = TRUE}
+mod1000 <- mod1000 %>% 
+  add_notes("Low ESS for some parameters. Try METHOD=NUTS.")
+```
+
+# Iterative model development
+
+<hr />
+
+After running your first model, you can create a new model based on the previous model using the `bbr::copy_model_from()` function. This will accomplish several objectives:
+
+* Copy the control stream associated with `.parent_mod` and rename it according to `.new_model`.
+* Create a new model object associated with this new control stream.
+* Fill the `based_on` field in the new model object (see the ["Using based_on" vignette](https://metrumresearchgroup.github.io/bbr/articles/using-based-on.html)).
+* Optionally, inherit any tags from the parent model.
+
+## Using `copy_model_from()`
+
+Learn more about this function from [`?copy_model_from`](https://metrumresearchgroup.github.io/bbr/reference/copy_model_from.html) or the [_Iteration_ section of the "Getting Started" vignette](https://metrumresearchgroup.github.io/bbr/articles/getting-started.html#iteration).
+
+```{r, eval = TRUE}
+mod1001 <- copy_model_from(
+    .parent_mod = mod1000,
+    .new_model = 1001,
+    .inherit_tags = TRUE
+  ) %>% 
+  replace_tag(TAGS$bayes, TAGS$nuts)
+```
+
+Though `.new_model = 1001` is explicitly passed here, this argument can be omitted if naming your models numerically, as in this example. If `.new_model` is _not_ passed, `bbr` defaults to incrementing the new model name to the next available integer in the same directory as `.parent_mod`.
+
+Note that we also update the model tags to reflect the change in estimation method.
+
+### Edit your control stream
+
+As mentioned above, you need to manually edit the new control stream with any modifications. In this case, we updated the model structure from one- to -two compartments. 
+
+If using RStudio, you can easily open your control stream for editing with the following:
+
+```{r, eval = TRUE}
+mod1001 %>% open_model_file()
+```
+
+```{r overwrite ctl 1a, eval = TRUE, include = FALSE}
+# In place of manually editing the control steam, run this function to update from example models contained in this repo
+update_demo_ctl(mod1001)
+```
+
+Like before, we use the `update_model_id` function to update the relevant suffixes in the control stream from "1000" to "1001".
+
+```{r, eval = TRUE}
+mod1001 <- update_model_id(mod1001)
+```
+
+You can easily look at the differences between control streams of a model and its parent model:
+
+```{r, eval = TRUE}
+model_diff(mod1001)
+```
+
+
+
+### Submit the model
+
+After manually updating your new control stream, you can submit it to run.
+
+```{r, eval = TRUE}
+submit_model(
+  mod1001,
+  .bbi_args = list(threads = 2)
+)
+```
+
+### Add notes and description
+
+After running model 1001, we consider MCMC diagnostics and standard model diagnostics to be suitable. For example, ESS is suitably high for all parameters and normalized prediction distribution error (NPDE) plots show no reason for concern.
+
+```{r}
+draws1001 <- read_fit_model(mod1001)
+posterior::subset_draws(draws1001, variable = "THETA") %>% 
+  posterior::summarize_draws()
+```
+
+```{r, eval = TRUE}
+browseURL(file.path(FIGURE_DIR, "1001/1001-npde-pred-time-tad.pdf"))
+```
+
+Thus, we add a note to the model to indicate this, and add a description to denote `mod1001` as the final base model.
+
+```{r, eval = TRUE}
+mod1001 <- mod1001 %>% 
+  add_notes("All diagnostics look reasonable") %>% 
+  add_description("Final base model")
+```
+
+# Final model
+
+<hr />
+
+## Including covariate effects
+
+After identifying our base model, we copy the base model, add some pre-specified covariates to the control stream to create our full covariate model, and include tags to indicate the covariates added:
+
+```{r, eval = TRUE}
+mod1100 <- copy_model_from(
+    mod1001,
+    1100,
+    .inherit_tags = TRUE
+  ) %>% 
+  add_tags(c(
+    TAGS$cov_cl_egfr,
+    TAGS$cov_cl_age,
+    TAGS$cov_cl_alb
+  ))
+```
+
+```{r overwrite ctl 5, eval = TRUE, include = FALSE}
+# In place of manually editing the control steam, run this function to update from example models contained in this repo
+update_demo_ctl(mod1100)
+```
+
+Remember to edit the control stream manually: 
+
+```{r, eval = TRUE}
+model_diff(mod1100)
+```
+
+We are now ready to submit the model.
+
+```{r, eval = TRUE}
+submit_model(
+  mod1100,
+  .bbi_args = list(threads = 2)
+)
+```
+
+### Choose final model
+
+After checking your model heuristics, parameter estimates, and GOF plots, the final model was determined to be run 1100. As above, this model can be identified as the "final model" in the `description` field so it can easily be identified as a key model when looking at the run log later.
+
+```{r, eval = TRUE}
+mod1100 <- mod1100 %>%
+  add_notes("All diagnostics look reasonable") %>% 
+  add_description("Final Model")
+```
+
+# Submit models to be re-run
+
+There are cases when some or all of your models need to be re-run. For example, maybe your model or data files changed since the model was last run. 
+
+You can check whether any changes have been made to the model or data since the last time the model was run using either the `bbr::config_log()` function or with `bbr` functions that track model lineage; examples of both approaches are shown in the ["Using the based_on field" vignette](https://metrumresearchgroup.github.io/bbr/articles/using-based-on.html).
+
+To re-run a _single_ model, simply pass `.overwrite = TRUE` to the `submit_model()` call.
+
+```{r, eval = TRUE}
+submit_model(mod1000, .overwrite=TRUE)
+```
+
+# Other resources
+
+<hr />
+
+The following scripts from the {{< var public_expo_repo.main >}} are discussed on this page. If you're interested running this code, visit the {{< var pages.about_the_repo >}} page first.
+
+- Model management "scratch pad" script: {{< var public_expo_repo.model_mang >}}
+- Runnable version of the examples on this page: {{< var public_expo_repo.model_mang_demo >}}
+
+## More `bbr` resources
+
+* {{< var vignette.bbr >}}
+* {{< var pkg_resource.bbr_cheatsheet >}}
+* {{< var repo.bbr >}}

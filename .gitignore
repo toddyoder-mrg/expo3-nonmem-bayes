@@ -1,0 +1,10 @@
+script/build
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+bin
+*.tar.gz
+tests
+data/sim/*.RDS

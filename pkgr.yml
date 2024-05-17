@@ -1,0 +1,67 @@
+Version: 1
+
+Packages:
+  - vpc
+  - future.apply
+  - lastdose
+  - xml2
+  - withr
+  - processx
+  - gridGraphics
+  - future.batchtools
+  - sensitivity
+  - testthat
+  - devtools
+  - tidyverse
+  - mrgsolve
+  - caTools
+  - bitops
+  - rprojroot
+  - pmplots
+  - mrggsave
+  - patchwork
+  - cowplot
+  - GGally
+  - latex2exp
+  - checkmate
+  - fs
+  - furrr
+  - glue
+  - magrittr
+  - jsonlite
+  - processx
+  - progressr
+  - rlang
+  - withr
+  - stringr
+  - yaml
+  - yspec
+  - kableExtra
+  - bbr
+  - bbr.bayes
+  - nmrec
+  - data.table
+  - pmtables
+  - mrgmisc
+  - sessioninfo
+  - texPreview
+  - diffobj
+  - rstan
+  - npde
+  - profvis
+  - microbenchmark
+  - bayesplot
+  - here
+  - RhpcBLASctl
+  - pmforest
+  - logitnorm
+
+Repos:
+  - MPN: https://mpn.metworx.com/snapshots/stable/2024-03-01
+
+Customizations:
+  Packages:
+  - bbr: {Suggests: true}
+
+Lockfile:
+    Type: renv

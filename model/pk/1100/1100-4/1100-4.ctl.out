@@ -1,0 +1,232 @@
+Starting NMTRAN
+  
+ WARNINGS AND ERRORS (IF ANY) FOR PROBLEM    1
+             
+ (WARNING  2) NM-TRAN INFERS THAT THE DATA ARE POPULATION.
+
+ (MU_WARNING 26) DATA ITEM(S) USED IN DEFINITION OF MU_(S) SHOULD BE CONSTANT FOR INDIV. REC.:
+  WT EGFR AGE ALB
+             
+ (WARNING  121) INTERACTION IS IMPLIED WITH EM/BAYES ESTIMATION METHODS
+
+ LIM VALUES MAXLIM ASSESSED BY NMTRAN: 1,2,3,4,5,6,7,8,10,11,13,15,16        
+  
+Note: Analytical 2nd Derivatives are constructed in FSUBS but are never used.
+      You may insert $ABBR DERIV2=NO after the first $PROB to save FSUBS construction and compilation time
+  
+Recompiling certain components
+ Minimum value for a list item exceeded:      1
+
+ USING PARALLEL PROFILE 1100-4.pnm
+ MPI TRANSFER TYPE SELECTED
+Building NONMEM Executable
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+Starting MPI version of nonmem execution ...
+Manager Location ip-10-128-3-142//data/bbr-nonmem-poppk-bayes/model/pk/1100/1100-4
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+License Registered to: Metrum Research Group
+Expiration Date:    14 JUL 2024
+Current Date:       12 MAY 2024
+Days until program expires :  62
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+
+
+ Chain Method Processing
+
+
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+
+
+ NUTS Bayesian Analysis
+ MONITORING OF SEARCH:
+
+ Extreme position, rejecting sample
+ Burn-in Mode
+ iteration         -250 MCMCOBJ=    41201.697908229784     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -240 MCMCOBJ=    30897.039284871022     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -230 MCMCOBJ=    30620.739170769131     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -220 MCMCOBJ=    30713.782218478929     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -210 MCMCOBJ=    30600.626606703267     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -200 MCMCOBJ=    30665.137681347205     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -190 MCMCOBJ=    30681.220186234961     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -180 MCMCOBJ=    30731.225665153019     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -170 MCMCOBJ=    30581.157795594077     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -160 MCMCOBJ=    30662.458006092835     
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ maximum depth reached:           10
+ iteration         -150 MCMCOBJ=    30608.946446898372     
+ iteration         -140 MCMCOBJ=    30682.447925152996     
+ iteration         -130 MCMCOBJ=    30649.574002882953     
+ iteration         -120 MCMCOBJ=    30681.293881407408     
+ iteration         -110 MCMCOBJ=    30747.920787729945     
+ iteration         -100 MCMCOBJ=    30662.149918086954     
+ iteration          -90 MCMCOBJ=    30733.679726580704     
+ iteration          -80 MCMCOBJ=    30641.885252261145     
+ iteration          -70 MCMCOBJ=    30734.421829456747     
+ iteration          -60 MCMCOBJ=    30710.356046305347     
+ iteration          -50 MCMCOBJ=    30688.334587862217     
+ iteration          -40 MCMCOBJ=    30733.627776295976     
+ iteration          -30 MCMCOBJ=    30667.667838903635     
+ iteration          -20 MCMCOBJ=    30608.295066397193     
+ iteration          -10 MCMCOBJ=    30637.761127531867     
+ Sampling Mode
+ iteration            0 MCMCOBJ=    30734.193972836627     
+ FINAL EPS    4.9926755004175531E-002
+ iteration           10 MCMCOBJ=    30682.518905830209     
+ iteration           20 MCMCOBJ=    30689.775724505940     
+ iteration           30 MCMCOBJ=    30716.809150475874     
+ iteration           40 MCMCOBJ=    30669.422461416358     
+ iteration           50 MCMCOBJ=    30713.867658136853     
+ iteration           60 MCMCOBJ=    30638.158858947139     
+ iteration           70 MCMCOBJ=    30761.512156104334     
+ iteration           80 MCMCOBJ=    30676.265036579010     
+ iteration           90 MCMCOBJ=    30727.354926256645     
+ iteration          100 MCMCOBJ=    30669.799124053188     
+ iteration          110 MCMCOBJ=    30609.409832108711     
+ iteration          120 MCMCOBJ=    30693.926893363314     
+ iteration          130 MCMCOBJ=    30717.511478854998     
+ iteration          140 MCMCOBJ=    30705.084725411500     
+ iteration          150 MCMCOBJ=    30692.978492910494     
+ iteration          160 MCMCOBJ=    30708.825331940017     
+ iteration          170 MCMCOBJ=    30730.289181165783     
+ iteration          180 MCMCOBJ=    30735.021913818211     
+ iteration          190 MCMCOBJ=    30604.816048691042     
+ iteration          200 MCMCOBJ=    30688.440172706152     
+ iteration          210 MCMCOBJ=    30710.844511478961     
+ iteration          220 MCMCOBJ=    30702.350683215016     
+ iteration          230 MCMCOBJ=    30711.700087329562     
+ iteration          240 MCMCOBJ=    30679.203748112279     
+ iteration          250 MCMCOBJ=    30602.728694306043     
+ iteration          260 MCMCOBJ=    30648.735570270852     
+ iteration          270 MCMCOBJ=    30579.495380759377     
+ iteration          280 MCMCOBJ=    30623.876171917807     
+ iteration          290 MCMCOBJ=    30711.008719546357     
+ iteration          300 MCMCOBJ=    30689.515415424154     
+ iteration          310 MCMCOBJ=    30662.132108198526     
+ iteration          320 MCMCOBJ=    30772.120203166163     
+ iteration          330 MCMCOBJ=    30601.571736780104     
+ iteration          340 MCMCOBJ=    30683.495345480431     
+ iteration          350 MCMCOBJ=    30692.311330715416     
+ iteration          360 MCMCOBJ=    30717.112495758065     
+ iteration          370 MCMCOBJ=    30733.670075564569     
+ iteration          380 MCMCOBJ=    30680.437276333032     
+ iteration          390 MCMCOBJ=    30704.974374005506     
+ iteration          400 MCMCOBJ=    30663.391352500803     
+ iteration          410 MCMCOBJ=    30593.927577556824     
+ iteration          420 MCMCOBJ=    30643.202639098010     
+ iteration          430 MCMCOBJ=    30616.852029324422     
+ iteration          440 MCMCOBJ=    30650.672253877383     
+ iteration          450 MCMCOBJ=    30682.448617039187     
+ iteration          460 MCMCOBJ=    30548.084647810585     
+ iteration          470 MCMCOBJ=    30710.893772089592     
+ iteration          480 MCMCOBJ=    30685.332587165081     
+ iteration          490 MCMCOBJ=    30725.229480301739     
+ iteration          500 MCMCOBJ=    30704.470072935670     
+ Elapsed estimation  time in seconds:  5347.26
+ BURN-IN WAS NOT TESTED FOR CONVERGENCE
+ STATISTICAL PORTION WAS COMPLETED
+
+ Elapsed covariance  time in seconds:     0.00
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+ Minimum value for a list item exceeded:      1
+ Parallelization Warnings are in FPWARN
+ Elapsed postprocess time in seconds:     2.23
+ Elapsed finaloutput time in seconds:     0.29
+Done with nonmem execution

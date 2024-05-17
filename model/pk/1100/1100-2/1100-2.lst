@@ -1,0 +1,1082 @@
+Sun May 12 08:31:15 EDT 2024
+$PROBLEM From bbr: see 1100.yaml for details
+
+$INPUT C NUM ID TIME SEQ CMT EVID AMT DV AGE WT HT EGFR ALB BMI SEX AAG
+  SCR AST ALT CP TAFD TAD LDOS MDV BLQ PHASE
+
+$DATA ../../../../data/derived/pk.csv IGNORE=(C='C', BLQ=1)
+
+$SUBROUTINE ADVAN4 TRANS4
+
+$PK
+
+;log transformed PK parms
+
+  CLEGFR = LOG(EGFR/90) * THETA(6)
+  CLAGE  = LOG(AGE/35) * THETA(7)
+  CLALB  = LOG(ALB/4.5) * THETA(8)
+
+  V2WT   = LOG(WT/70)
+  CLWT   = LOG(WT/70) * 0.75
+  V3WT   = LOG(WT/70)
+  QWT    = LOG(WT/70) * 0.75
+
+  MU_1   = THETA(1)
+  MU_2   = THETA(2) + V2WT
+  MU_3   = THETA(3) + CLWT + CLEGFR + CLAGE + CLALB
+  MU_4   = THETA(4) + V3WT
+  MU_5   = THETA(5) + QWT
+
+  KA     = EXP(MU_1 + ETA(1))
+  V2     = EXP(MU_2 + ETA(2))
+  CL     = EXP(MU_3 + ETA(3))
+  V3     = EXP(MU_4 + ETA(4))
+  Q      = EXP(MU_5 + ETA(5))
+
+  S2     = V2/1000 ; dose in mcg, conc in mcg/mL
+
+$ERROR
+
+  IPRED = F
+  Y     = IPRED * (1 + EPS(1))
+
+$THETA
+; log values
+  (0.5)   ; 1 KA (1/hr) - 1.5
+  (3.5)   ; 2 V2 (L) - 60
+  (1)     ; 3 CL (L/hr) - 3.5
+  (4)     ; 4 V3 (L) - 70
+  (2)     ; 5 Q  (L/hr) - 4
+  (1)     ; 6 CLEGFR~CL ()
+  (1)     ; 7 AGE~CL ()
+  (0.5)   ; 8 ALB~CL ()
+
+$OMEGA BLOCK(3)
+  0.2           ; ETA(KA)
+  0.01 0.2      ; ETA(V2)
+  0.01 0.01 0.2 ; ETA(CL)
+$OMEGA
+  0.025 FIX    ; ETA(V3)
+  0.025 FIX    ; ETA(Q)
+
+$SIGMA
+  0.05          ; 1 pro error
+
+$PRIOR NWPRI
+
+$THETAP
+  (0.5) FIX      ; 1 KA (1/hr) - 1.5
+  (3.5) FIX      ; 2 V2 (L) - 60
+  (1)   FIX      ; 3 CL (L/hr) - 3.5
+  (4)   FIX      ; 4 V3 (L) - 70
+  (2)   FIX      ; 5 Q  (L/hr) - 4
+  (1)   FIX   ; 6 CLEGFR~CL ()
+  (1)   FIX   ; 7 AGE~CL ()
+  (0.5) FIX   ; 8 ALB~CL ()
+$THETAPV BLOCK(8) VALUES(10, 0) FIX
+
+$OMEGAP BLOCK(3) VALUES(0.2, 0.01) FIX
+
+$OMEGAPD (3 FIX)
+
+$SIGMAP
+  0.05 FIX           ; 1 pro error
+
+$SIGMAPD (1 FIX)
+
+$EST METHOD=CHAIN FILE=../init.chn NSAMPLE=0 ISAMPLE=2 SEED=1 CTYPE=0 IACCEPT=0.3 DF=10 DFS=0
+$EST METHOD=NUTS AUTO=2 CTYPE=0 OLKJDF=2 OVARF=1 SEED=2 NBURN=250 NITER=500 NUTS_DELTA=0.95 PRINT=10 MSFO=./1100.msf RANMETHOD=P PARAFPRINT=10000 BAYES_PHI_STORE=1
+
+$TABLE NUM CL V2 Q V3 KA ETAS(1:LAST) EPRED IPRED NPDE EWRES NOPRINT ONEHEADER FILE=1100.tab RANMETHOD=P
+
+NM-TRAN MESSAGES
+  
+ WARNINGS AND ERRORS (IF ANY) FOR PROBLEM    1
+             
+ (WARNING  2) NM-TRAN INFERS THAT THE DATA ARE POPULATION.
+
+ (MU_WARNING 26) DATA ITEM(S) USED IN DEFINITION OF MU_(S) SHOULD BE CONSTANT FOR INDIV. REC.:
+  WT EGFR AGE ALB
+             
+ (WARNING  121) INTERACTION IS IMPLIED WITH EM/BAYES ESTIMATION METHODS
+
+ LIM VALUES MAXLIM ASSESSED BY NMTRAN: 1,2,3,4,5,6,7,8,10,11,13,15,16        
+  
+Note: Analytical 2nd Derivatives are constructed in FSUBS but are never used.
+      You may insert $ABBR DERIV2=NO after the first $PROB to save FSUBS construction and compilation time
+  
+
+License Registered to: Metrum Research Group
+Expiration Date:    14 JUL 2024
+Current Date:       12 MAY 2024
+Days until program expires :  62
+1NONLINEAR MIXED EFFECTS MODEL PROGRAM (NONMEM) VERSION 7.5.1
+ ORIGINALLY DEVELOPED BY STUART BEAL, LEWIS SHEINER, AND ALISON BOECKMANN
+ CURRENT DEVELOPERS ARE ROBERT BAUER, ICON DEVELOPMENT SOLUTIONS,
+ AND ALISON BOECKMANN. IMPLEMENTATION, EFFICIENCY, AND STANDARDIZATION
+ PERFORMED BY NOUS INFOSYSTEMS.
+
+ PROBLEM NO.:         1
+ From bbr: see 1100.yaml for details
+0DATA CHECKOUT RUN:              NO
+ DATA SET LOCATED ON UNIT NO.:    2
+ THIS UNIT TO BE REWOUND:        NO
+ NO. OF DATA RECS IN DATA SET:     4292
+ NO. OF DATA ITEMS IN DATA SET:  27
+ ID DATA ITEM IS DATA ITEM NO.:   3
+ DEP VARIABLE IS DATA ITEM NO.:   9
+ MDV DATA ITEM IS DATA ITEM NO.: 25
+0INDICES PASSED TO SUBROUTINE PRED:
+   7   4   8   0   0   0   6   0   0   0   0
+0LABELS FOR DATA ITEMS:
+ C NUM ID TIME SEQ CMT EVID AMT DV AGE WT HT EGFR ALB BMI SEX AAG SCR AST ALT CP TAFD TAD LDOS MDV BLQ PHASE
+0(NONBLANK) LABELS FOR PRED-DEFINED ITEMS:
+ KA V2 CL V3 Q IPRED
+0FORMAT FOR DATA:
+ (2(10E7.0/),7E7.0)
+
+ TOT. NO. OF OBS RECS:     3142
+ TOT. NO. OF INDIVIDUALS:      160
+0LENGTH OF THETA:  18
+0DEFAULT THETA BOUNDARY TEST OMITTED:    NO
+0OMEGA HAS BLOCK FORM:
+  1
+  1  1
+  1  1  1
+  0  0  0  2
+  0  0  0  0  3
+  0  0  0  0  0  4
+  0  0  0  0  0  4  4
+  0  0  0  0  0  4  4  4
+  0  0  0  0  0  4  4  4  4
+  0  0  0  0  0  4  4  4  4  4
+  0  0  0  0  0  4  4  4  4  4  4
+  0  0  0  0  0  4  4  4  4  4  4  4
+  0  0  0  0  0  4  4  4  4  4  4  4  4
+  0  0  0  0  0  0  0  0  0  0  0  0  0  5
+  0  0  0  0  0  0  0  0  0  0  0  0  0  5  5
+  0  0  0  0  0  0  0  0  0  0  0  0  0  5  5  5
+0DEFAULT OMEGA BOUNDARY TEST OMITTED:    NO
+0SIGMA HAS BLOCK FORM:
+  1
+  0  2
+0DEFAULT SIGMA BOUNDARY TEST OMITTED:    NO
+0INITIAL ESTIMATE OF THETA:
+ LOWER BOUND    INITIAL EST    UPPER BOUND
+ -0.1000E+07     0.5000E+00     0.1000E+07
+ -0.1000E+07     0.3500E+01     0.1000E+07
+ -0.1000E+07     0.1000E+01     0.1000E+07
+ -0.1000E+07     0.4000E+01     0.1000E+07
+ -0.1000E+07     0.2000E+01     0.1000E+07
+ -0.1000E+07     0.1000E+01     0.1000E+07
+ -0.1000E+07     0.1000E+01     0.1000E+07
+ -0.1000E+07     0.5000E+00     0.1000E+07
+  0.5000E+00     0.5000E+00     0.5000E+00
+  0.3500E+01     0.3500E+01     0.3500E+01
+  0.1000E+01     0.1000E+01     0.1000E+01
+  0.4000E+01     0.4000E+01     0.4000E+01
+  0.2000E+01     0.2000E+01     0.2000E+01
+  0.1000E+01     0.1000E+01     0.1000E+01
+  0.1000E+01     0.1000E+01     0.1000E+01
+  0.5000E+00     0.5000E+00     0.5000E+00
+  0.3000E+01     0.3000E+01     0.3000E+01
+  0.1000E+01     0.1000E+01     0.1000E+01
+0INITIAL ESTIMATE OF OMEGA:
+ BLOCK SET NO.   BLOCK                                                                    FIXED
+        1                                                                                   NO
+                  0.2000E+00
+                  0.1000E-01   0.2000E+00
+                  0.1000E-01   0.1000E-01   0.2000E+00
+        2                                                                                  YES
+                  0.2500E-01
+        3                                                                                  YES
+                  0.2500E-01
+        4                                                                                  YES
+                  0.1000E+02
+                  0.0000E+00   0.1000E+02
+                  0.0000E+00   0.0000E+00   0.1000E+02
+                  0.0000E+00   0.0000E+00   0.0000E+00   0.1000E+02
+                  0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.1000E+02
+                  0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.1000E+02
+                  0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.1000E+02
+                  0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.1000E+02
+        5                                                                                  YES
+                  0.2000E+00
+                  0.1000E-01   0.2000E+00
+                  0.1000E-01   0.1000E-01   0.2000E+00
+0INITIAL ESTIMATE OF SIGMA:
+ BLOCK SET NO.   BLOCK                                                                    FIXED
+        1                                                                                   NO
+                  0.5000E-01
+        2                                                                                  YES
+                  0.5000E-01
+0TABLES STEP OMITTED:    NO
+ NO. OF TABLES:           1
+ SEED NUMBER (SEED):    11456
+ NPDTYPE:    0
+ INTERPTYPE:    0
+ RANMETHOD:             3UP
+ MC SAMPLES (ESAMPLE):    300
+ WRES SQUARE ROOT TYPE (WRESCHOL): EIGENVALUE
+0-- TABLE   1 --
+0RECORDS ONLY:    ALL
+04 COLUMNS APPENDED:    YES
+ PRINTED:                NO
+ HEADERS:               ONE
+ FILE TO BE FORWARDED:   NO
+ FORMAT:                S1PE11.4
+ IDFORMAT:
+ LFORMAT:
+ RFORMAT:
+ FIXED_EFFECT_ETAS:
+0USER-CHOSEN ITEMS:
+ NUM CL V2 Q V3 KA ETA1 ETA2 ETA3 ETA4 ETA5 EPRED IPRED NPDE EWRES
+0
+ PRIOR SUBROUTINE USER-SUPPLIED
+1DOUBLE PRECISION PREDPP VERSION 7.5.1
+
+ TWO COMPARTMENT MODEL WITH FIRST-ORDER ABSORPTION (ADVAN4)
+0MAXIMUM NO. OF BASIC PK PARAMETERS:   5
+0BASIC PK PARAMETERS (AFTER TRANSLATION):
+   BASIC PK PARAMETER NO.  1: ELIMINATION RATE (K)
+   BASIC PK PARAMETER NO.  2: CENTRAL-TO-PERIPH. RATE (K23)
+   BASIC PK PARAMETER NO.  3: PERIPH.-TO-CENTRAL RATE (K32)
+   BASIC PK PARAMETER NO.  5: ABSORPTION RATE (KA)
+ TRANSLATOR WILL CONVERT PARAMETERS
+ CL, V2, Q, V3 TO K, K23, K32 (TRANS4)
+0COMPARTMENT ATTRIBUTES
+ COMPT. NO.   FUNCTION   INITIAL    ON/OFF      DOSE      DEFAULT    DEFAULT
+                         STATUS     ALLOWED    ALLOWED    FOR DOSE   FOR OBS.
+    1         DEPOT        OFF        YES        YES        YES        NO
+    2         CENTRAL      ON         NO         YES        NO         YES
+    3         PERIPH.      ON         NO         YES        NO         NO
+    4         OUTPUT       OFF        YES        NO         NO         NO
+1
+ ADDITIONAL PK PARAMETERS - ASSIGNMENT OF ROWS IN GG
+ COMPT. NO.                             INDICES
+              SCALE      BIOAVAIL.   ZERO-ORDER  ZERO-ORDER  ABSORB
+                         FRACTION    RATE        DURATION    LAG
+    1            *           *           *           *           *
+    2            6           *           *           *           *
+    3            *           *           *           *           *
+    4            *           -           -           -           -
+             - PARAMETER IS NOT ALLOWED FOR THIS MODEL
+             * PARAMETER IS NOT SUPPLIED BY PK SUBROUTINE;
+               WILL DEFAULT TO ONE IF APPLICABLE
+0DATA ITEM INDICES USED BY PRED ARE:
+   EVENT ID DATA ITEM IS DATA ITEM NO.:      7
+   TIME DATA ITEM IS DATA ITEM NO.:          4
+   DOSE AMOUNT DATA ITEM IS DATA ITEM NO.:   8
+   COMPT. NO. DATA ITEM IS DATA ITEM NO.:    6
+
+0PK SUBROUTINE CALLED WITH EVERY EVENT RECORD.
+ PK SUBROUTINE NOT CALLED AT NONEVENT (ADDITIONAL OR LAGGED) DOSE TIMES.
+0ERROR SUBROUTINE CALLED WITH EVERY EVENT RECORD.
+1
+
+
+ #TBLN:      1
+ #METH: Chain Method Processing
+
+ RANDOM GENERATION TYPE (CTYPE):     0
+ RANDOM GENERATION SEED (SEED):      1
+ RANDOM SAMPLE SELECTION (ISAMPLE):  2
+ RANDOM SAMPLE RANGE END (ISAMPEND): -2147483647
+ NUMBER OF RANDOM SAMPLES (NSAMPLE): 0
+ UNIFORM FRACTIONAL RANGE (IACCEPT): 0.300000000000000
+ RANDOM SELECTION TYPE (SELECT):     0
+ DEG. FR. TO GENERATE OMEGAS (DF):   10
+ DEG. FR. TO GENERATE SIGMAS (DFS):  0
+ CHAIN FILE (FILE):                  ../init.chn
+ EXCL. TITLE IN CHAIN FILE (NOTITLE):NO
+ EX. COL. LBS. IN CHAIN FL.(NOLABEL):NO
+ FORMAT FOR CHAIN FILE (FORMAT):     S1PE12.5
+ PAR. ORDER in CHAIN FILE (ORDER):   TSOL
+ RANDOM SAMPLING METHOD (RANMETHOD):3U
+
+ THE FOLLOWING LABELS ARE EQUIVALENT
+ PRED=NPRED
+ RES=NRES
+ WRES=NWRES
+ IWRS=NIWRES
+ IPRD=NIPRED
+ IRS=NIRES
+
+
+
+ FROM SAMPLE 2 OF CHAIN FILE ../init.chn
+ NEW INITIAL ESTIMATES OF THETA
+  0.3542E+00
+  0.2649E+01
+  0.8942E+00
+  0.4959E+01
+  0.1741E+01
+  0.1176E+01
+  0.1024E+01
+  0.4882E+00
+ NEW INITIAL ESTIMATES OF OMEGA
+  0.2461E+00
+ -0.1663E+00  0.3734E+00
+ -0.4036E-01 -0.1334E-01  0.3423E+00
+  0.0000E+00  0.0000E+00  0.0000E+00  0.2500E-01
+  0.0000E+00  0.0000E+00  0.0000E+00  0.0000E+00  0.2500E-01
+ NEW INITIAL ESTIMATES OF SIGMA
+  0.2880E-01
+
+ #PARA: PARAFILE=1100-2.pnm, PROTOCOL=MPI, NODES= 4
+
+1
+
+
+ #TBLN:      1
+ #METH: NUTS Bayesian Analysis
+
+ ESTIMATION STEP OMITTED:                 NO
+ ANALYSIS TYPE:                           POPULATION
+ NUMBER OF SADDLE POINT RESET ITERATIONS:      0
+ GRADIENT METHOD USED:               NOSLOW
+ CONDITIONAL ESTIMATES USED:              YES
+ CENTERED ETA:                            NO
+ EPS-ETA INTERACTION:                     YES
+ LAPLACIAN OBJ. FUNC.:                    NO
+ NO. OF FUNCT. EVALS. ALLOWED:            5928
+ NO. OF SIG. FIGURES REQUIRED:            3
+ INTERMEDIATE PRINTOUT:                   YES
+ ESTIMATE OUTPUT TO MSF:                  YES
+ IND. OBJ. FUNC. VALUES SORTED:           NO
+ NUMERICAL DERIVATIVE
+       FILE REQUEST (NUMDER):               NONE
+ MAP (ETAHAT) ESTIMATION METHOD (OPTMAP):   0
+ ETA HESSIAN EVALUATION METHOD (ETADER):    0
+ INITIAL ETA FOR MAP ESTIMATION (MCETA):    0
+ SIGDIGITS FOR MAP ESTIMATION (SIGLO):      100
+ GRADIENT SIGDIGITS OF
+       FIXED EFFECTS PARAMETERS (SIGL):     100
+ NOPRIOR SETTING (NOPRIOR):                 0
+ NOCOV SETTING (NOCOV):                     OFF
+ DERCONT SETTING (DERCONT):                 OFF
+ FINAL ETA RE-EVALUATION (FNLETA):          1
+ EXCLUDE NON-INFLUENTIAL (NON-INFL.) ETAS
+       IN SHRINKAGE (ETASTYPE):             NO
+ NON-INFL. ETA CORRECTION (NONINFETA):      0
+ RAW OUTPUT FILE (FILE): 1100-2.ext
+ EXCLUDE TITLE (NOTITLE):                   NO
+ EXCLUDE COLUMN LABELS (NOLABEL):           NO
+ FORMAT FOR ADDITIONAL FILES (FORMAT):      S1PE12.5
+ PARAMETER ORDER FOR OUTPUTS (ORDER):       TSOL
+ KNUTHSUMOFF:                               0
+ INCLUDE LNTWOPI:                           NO
+ INCLUDE CONSTANT TERM TO PRIOR (PRIORC):   NO
+ INCLUDE CONSTANT TERM TO OMEGA (ETA) (OLNTWOPI):NO
+ EM OR BAYESIAN METHOD USED:                MCMC BAYESIAN (BAYES)
+ BAYES INDIVIDUAL PARAMETERS ONLY: NO
+ MU MODELING PATTERN (MUM):
+ GRADIENT/GIBBS PATTERN (GRD):
+ AUTOMATIC SETTING FEATURE (AUTO):          2
+ CONVERGENCE TYPE (CTYPE):                  0
+ KEEP ITERATIONS (THIN):            1
+ BURN-IN ITERATIONS (NBURN):                250
+ FIRST ITERATION FOR MAP (MAPITERS):          NO
+ ITERATIONS (NITER):                        500
+ ANNEAL SETTING (CONSTRAIN):                 1
+ STARTING SEED FOR MC METHODS (SEED):       2
+ MC SAMPLES PER SUBJECT (ISAMPLE):          1
+ RANDOM SAMPLING METHOD (RANMETHOD):        3UP
+ PROPOSAL DENSITY SCALING RANGE
+              (ISCALE_MIN, ISCALE_MAX):     1.000000000000000E-06   ,1000000.00000000
+ SAMPLE ACCEPTANCE RATE (IACCEPT):          0.400000000000000
+ METROPOLIS HASTINGS POPULATION SAMPLING FOR NON-GIBBS
+ SAMPLED THETAS AND SIGMAS:
+ PROPOSAL DENSITY SCALING RANGE
+              (PSCALE_MIN, PSCALE_MAX):   1.000000000000000E-02   ,1000.00000000000
+ SAMPLE ACCEPTANCE RATE (PACCEPT):                       0.500000000000000
+ SAMPLES FOR GLOBAL SEARCH KERNEL (PSAMPLE_M1):          1
+ SAMPLES FOR LOCAL SEARCH KERNEL (PSAMPLE_M2):           -1
+ SAMPLES FOR LOCAL UNIVARIATE KERNEL (PSAMPLE_M3):       1
+ METROPOLIS HASTINGS POPULATION SAMPLING FOR NON-GIBBS
+ SAMPLED OMEGAS:
+ SAMPLE ACCEPTANCE RATE (OACCEPT):                       0.500000000000000
+ SAMPLES FOR GLOBAL SEARCH KERNEL (OSAMPLE_M1):          -1
+ SAMPLES FOR LOCAL SEARCH KERNEL (OSAMPLE_M2):           -1
+ SAMPLES FOR LOCAL UNIVARIATE SEARCH KERNEL (OSAMPLE_M3):-1
+ MASS/IMP./POST. MATRIX REFRESH SETTING (MASSREST):      -1
+ MASS MATRIX ACCUMULATION ITERATIONS (MADAPT):          -1
+ MASS MATRIX BLOCKING TYPE (NUTS_MASS):                 BD
+ MODEL PARAMETERS TRANSFORMED BY MASS MATRIX (NUTS_TRANSFORM=0)
+ POWER TERM WEIGHTING FOR MASS MATRIX ACCUM. (KAPPA):   1.00000000000000
+ NUTS SAMPLE ACCEPTANCE RATE (NUTS_DELTA):                   0.950000000000000
+ NUTS GAMMA SETTING (NUTS_GAMMA):                            5.000000000000000E-02
+ USER DEFINED PRIOR SETTING FOR THETAS: (TPU):        0.00000000000000
+ DEG. FR. FOR LKJ CORRELATION PRIOR FOR OMEGAS (OLKJDF): 2.00000000000000
+ WEIGHT FACTOR FOR STD PRIOR FOR OMEGAS (OVARF): 1.00000000000000
+ WEIGHT FACTOR FOR STD PRIOR FOR SIGMAS (SVARF): -1.000000000000000+300
+ NUTS WARMUP METHOD (NUTS_TEST):       0
+ NUTS MAXIMAL DEPTH SEARCH (NUTS_MAXDEPTH):       10
+ NUTS STAGE I WARMUP ITERATIONS (NUTS_INIT):       75.0000000000000
+ NUTS STAGE II BASE WARMUP ITERATIONS (NUTS_BASE): -3.00000000000000
+ NUTS STAGE III FINAL ITERATIONS (NUTS_TERM): 50.0000000000000
+ INITIAL ITERATIONS FOR STEP NUTS SIZE ASSESSMENT (NUTS_STEPITER): 1
+ INTERVAL ITERATIONS FOR STEP NUTS SIZE ASSESSMENT (NUTS_STEPINTER):0
+ ETA PARAMETERIZATION (NUTS_EPARAM):2
+ OMEGA PARAMETERIZATION (NUTS_OPARAM):1
+ SIGMA PARAMETERIZATION (NUTS_SPARAM):1
+ NUTS REGULARIZING METHOD (NUTS_REG): 0.00000000000000
+
+
+ THE FOLLOWING LABELS ARE EQUIVALENT
+ PRED=PREDI
+ RES=RESI
+ WRES=WRESI
+ IWRS=IWRESI
+ IPRD=IPREDI
+ IRS=IRESI
+
+ EM/BAYES SETUP:
+ THETAS THAT ARE MU MODELED:
+   1   2   3   4   5   6   7   8
+ THETAS THAT ARE GIBBS SAMPLED:
+   1   2   3   4   5   6   7   8
+ THETAS THAT ARE METROPOLIS-HASTINGS SAMPLED:
+ 
+ SIGMAS THAT ARE GIBBS SAMPLED:
+   1
+ SIGMAS THAT ARE METROPOLIS-HASTINGS SAMPLED:
+ 
+ OMEGAS ARE GIBBS SAMPLED
+
+ MONITORING OF SEARCH:
+
+ Burn-in Mode
+ iteration         -250 MCMCOBJ=    41023.456727613557     
+ iteration         -240 MCMCOBJ=    31152.342931187188     
+ iteration         -230 MCMCOBJ=    30739.455606746233     
+ iteration         -220 MCMCOBJ=    30700.478611805596     
+ iteration         -210 MCMCOBJ=    30730.189580144790     
+ iteration         -200 MCMCOBJ=    30679.802531547539     
+ iteration         -190 MCMCOBJ=    30679.442746344077     
+ iteration         -180 MCMCOBJ=    30722.849372472301     
+ iteration         -170 MCMCOBJ=    30638.653637359028     
+ iteration         -160 MCMCOBJ=    30730.293139145953     
+ iteration         -150 MCMCOBJ=    30699.511532595006     
+ iteration         -140 MCMCOBJ=    30704.886653966285     
+ iteration         -130 MCMCOBJ=    30579.808516156510     
+ iteration         -120 MCMCOBJ=    30742.153441813294     
+ iteration         -110 MCMCOBJ=    30732.104072330934     
+ iteration         -100 MCMCOBJ=    30597.728972740424     
+ iteration          -90 MCMCOBJ=    30694.213813016744     
+ iteration          -80 MCMCOBJ=    30725.741961196138     
+ iteration          -70 MCMCOBJ=    30671.609122025220     
+ iteration          -60 MCMCOBJ=    30572.873739584753     
+ iteration          -50 MCMCOBJ=    30671.246515726838     
+ iteration          -40 MCMCOBJ=    30667.073138005155     
+ iteration          -30 MCMCOBJ=    30674.255369683451     
+ iteration          -20 MCMCOBJ=    30637.186630528096     
+ iteration          -10 MCMCOBJ=    30697.941249807885     
+ Sampling Mode
+ iteration            0 MCMCOBJ=    30767.158360271216     
+ iteration           10 MCMCOBJ=    30736.030113154407     
+ iteration           20 MCMCOBJ=    30714.118139179587     
+ iteration           30 MCMCOBJ=    30759.422136193916     
+ iteration           40 MCMCOBJ=    30753.972294149222     
+ iteration           50 MCMCOBJ=    30699.502696753716     
+ iteration           60 MCMCOBJ=    30697.837494843941     
+ iteration           70 MCMCOBJ=    30691.234337365007     
+ iteration           80 MCMCOBJ=    30751.245792781603     
+ iteration           90 MCMCOBJ=    30699.533921323979     
+ iteration          100 MCMCOBJ=    30743.970900644792     
+ iteration          110 MCMCOBJ=    30691.357787282421     
+ iteration          120 MCMCOBJ=    30613.273996671745     
+ iteration          130 MCMCOBJ=    30640.323035862373     
+ iteration          140 MCMCOBJ=    30672.941500347777     
+ iteration          150 MCMCOBJ=    30765.348647165920     
+ iteration          160 MCMCOBJ=    30548.616305945448     
+ iteration          170 MCMCOBJ=    30578.800924925094     
+ iteration          180 MCMCOBJ=    30636.276618276610     
+ iteration          190 MCMCOBJ=    30702.267978152286     
+ iteration          200 MCMCOBJ=    30762.855795632106     
+ iteration          210 MCMCOBJ=    30701.248176783964     
+ iteration          220 MCMCOBJ=    30587.694889080696     
+ iteration          230 MCMCOBJ=    30586.407809536875     
+ iteration          240 MCMCOBJ=    30669.487406849777     
+ iteration          250 MCMCOBJ=    30629.429395495903     
+ iteration          260 MCMCOBJ=    30690.556336610865     
+ iteration          270 MCMCOBJ=    30725.746876196325     
+ iteration          280 MCMCOBJ=    30730.766205538755     
+ iteration          290 MCMCOBJ=    30678.669570017373     
+ iteration          300 MCMCOBJ=    30709.946180521227     
+ iteration          310 MCMCOBJ=    30645.108050556737     
+ iteration          320 MCMCOBJ=    30716.446688006185     
+ iteration          330 MCMCOBJ=    30632.132758275060     
+ iteration          340 MCMCOBJ=    30702.016766041830     
+ iteration          350 MCMCOBJ=    30734.057346616395     
+ iteration          360 MCMCOBJ=    30619.879050368683     
+ iteration          370 MCMCOBJ=    30620.914817362751     
+ iteration          380 MCMCOBJ=    30700.743863838863     
+ iteration          390 MCMCOBJ=    30733.083447944857     
+ iteration          400 MCMCOBJ=    30712.292910034328     
+ iteration          410 MCMCOBJ=    30675.175046167438     
+ iteration          420 MCMCOBJ=    30677.860035802885     
+ iteration          430 MCMCOBJ=    30675.818480615329     
+ iteration          440 MCMCOBJ=    30643.906479476420     
+ iteration          450 MCMCOBJ=    30686.214612625885     
+ iteration          460 MCMCOBJ=    30682.893224633517     
+ iteration          470 MCMCOBJ=    30656.719088550890     
+ iteration          480 MCMCOBJ=    30691.699316639122     
+ iteration          490 MCMCOBJ=    30783.758057923340     
+ iteration          500 MCMCOBJ=    30641.521471094991     
+
+ #TERM:
+ BURN-IN WAS NOT TESTED FOR CONVERGENCE
+ STATISTICAL PORTION WAS COMPLETED
+
+ ETABAR IS THE ARITHMETIC MEAN OF THE ETA-ESTIMATES,
+ AND THE P-VALUE IS GIVEN FOR THE NULL HYPOTHESIS THAT THE TRUE MEAN IS 0.
+
+ ETABAR:         3.6602E-03 -1.1738E-04  7.4172E-04 -2.3999E-04  1.2096E-04
+ SE:             3.1672E-02  2.1302E-02  2.6353E-02  4.8864E-03  4.0075E-03
+ N:                     160         160         160         160         160
+
+ P VAL.:         9.0800E-01  9.9560E-01  9.7755E-01  9.6083E-01  9.7592E-01
+
+ ETASHRINKSD(%)  1.8298E+01  6.8886E+00  1.7850E+00  6.0909E+01  6.7940E+01
+ ETASHRINKVR(%)  3.3247E+01  1.3303E+01  3.5382E+00  8.4719E+01  8.9721E+01
+ EBVSHRINKSD(%)  1.8216E+01  6.6147E+00  1.4603E+00  4.8671E+01  6.9683E+01
+ EBVSHRINKVR(%)  3.3114E+01  1.2792E+01  2.8992E+00  7.3653E+01  9.0809E+01
+ RELATIVEINF(%)  1.2706E+01  2.8132E+01  6.6886E+01  2.1147E+01  2.9843E+00
+ EPSSHRINKSD(%)  6.9510E+00
+ EPSSHRINKVR(%)  1.3419E+01
+
+  
+ TOTAL DATA POINTS NORMALLY DISTRIBUTED (N):         3142
+ N*LOG(2PI) CONSTANT TO OBJECTIVE FUNCTION:    5774.6097426581628     
+ OBJECTIVE FUNCTION VALUE WITHOUT CONSTANT:    30685.214571844521     
+ OBJECTIVE FUNCTION VALUE WITH CONSTANT:       36459.824314502686     
+ REPORTED OBJECTIVE FUNCTION DOES NOT CONTAIN CONSTANT
+  
+ TOTAL EFFECTIVE ETAS (NIND*NETA):                           800
+ NIND*NETA*LOG(2PI) CONSTANT TO OBJECTIVE FUNCTION:    1470.3016531274764     
+ OBJECTIVE FUNCTION VALUE WITHOUT CONSTANT:    30685.214571844521     
+ OBJECTIVE FUNCTION VALUE WITH CONSTANT:       32155.516224971998     
+ REPORTED OBJECTIVE FUNCTION DOES NOT CONTAIN CONSTANT
+  
+ PRIOR CONSTANT TO OBJECTIVE FUNCTION:    44.701904490672852     
+ OBJECTIVE FUNCTION VALUE WITHOUT CONSTANT:    30685.214571844521     
+ OBJECTIVE FUNCTION VALUE WITH CONSTANT:       30729.916476335195     
+ REPORTED OBJECTIVE FUNCTION DOES NOT CONTAIN CONSTANT
+  
+ #TERE:
+ Elapsed estimation  time in seconds:  5383.53
+ Elapsed covariance  time in seconds:     0.00
+1
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ ************************************************************************************************************************
+ ********************                                                                                ********************
+ ********************                              NUTS BAYESIAN ANALYSIS                            ********************
+ #OBJT:**************                       AVERAGE VALUE OF LIKELIHOOD FUNCTION                     ********************
+ ********************                                                                                ********************
+ ************************************************************************************************************************
+ 
+
+
+
+
+
+ #OBJV:********************************************    30685.215       **************************************************
+ #OBJS:********************************************       53.737 (STD) **************************************************
+1
+ ************************************************************************************************************************
+ ********************                                                                                ********************
+ ********************                              NUTS BAYESIAN ANALYSIS                            ********************
+ ********************                             FINAL PARAMETER ESTIMATE                           ********************
+ ********************                                                                                ********************
+ ************************************************************************************************************************
+ 
+
+
+ THETA - VECTOR OF FIXED EFFECTS PARAMETERS   *********
+
+
+         TH 1      TH 2      TH 3      TH 4      TH 5      TH 6      TH 7      TH 8     
+ 
+         4.75E-01  4.10E+00  1.16E+00  4.23E+00  1.29E+00  4.86E-01 -4.37E-02  4.25E-01
+ 
+
+
+ OMEGA - COV MATRIX FOR RANDOM EFFECTS - ETAS  ********
+
+
+         ETA1      ETA2      ETA3      ETA4      ETA5     
+ 
+ ETA1
++        2.40E-01
+ 
+ ETA2
++        6.77E-02  8.37E-02
+ 
+ ETA3
++        1.18E-01  6.88E-02  1.15E-01
+ 
+ ETA4
++        0.00E+00  0.00E+00  0.00E+00  2.50E-02
+ 
+ ETA5
++        0.00E+00  0.00E+00  0.00E+00  0.00E+00  2.50E-02
+ 
+
+
+ SIGMA - COV MATRIX FOR RANDOM EFFECTS - EPSILONS  ****
+
+
+         EPS1     
+ 
+ EPS1
++        3.94E-02
+ 
+1
+
+
+ OMEGA - CORR MATRIX FOR RANDOM EFFECTS - ETAS  *******
+
+
+         ETA1      ETA2      ETA3      ETA4      ETA5     
+ 
+ ETA1
++        4.87E-01
+ 
+ ETA2
++        4.74E-01  2.89E-01
+ 
+ ETA3
++        7.16E-01  7.01E-01  3.39E-01
+ 
+ ETA4
++        0.00E+00  0.00E+00  0.00E+00  1.58E-01
+ 
+ ETA5
++        0.00E+00  0.00E+00  0.00E+00  0.00E+00  1.58E-01
+ 
+
+
+ SIGMA - CORR MATRIX FOR RANDOM EFFECTS - EPSILONS  ***
+
+
+         EPS1     
+ 
+ EPS1
++        1.99E-01
+ 
+1
+ ************************************************************************************************************************
+ ********************                                                                                ********************
+ ********************                              NUTS BAYESIAN ANALYSIS                            ********************
+ ********************                STANDARD ERROR OF ESTIMATE (From Sample Variance)               ********************
+ ********************                                                                                ********************
+ ************************************************************************************************************************
+ 
+
+
+ THETA - VECTOR OF FIXED EFFECTS PARAMETERS   *********
+
+
+         TH 1      TH 2      TH 3      TH 4      TH 5      TH 6      TH 7      TH 8     
+ 
+         6.48E-02  2.73E-02  2.79E-02  2.50E-02  3.72E-02  4.95E-02  7.28E-02  8.21E-02
+ 
+
+
+ OMEGA - COV MATRIX FOR RANDOM EFFECTS - ETAS  ********
+
+
+         ETA1      ETA2      ETA3      ETA4      ETA5     
+ 
+ ETA1
++        5.99E-02
+ 
+ ETA2
++        2.04E-02  1.16E-02
+ 
+ ETA3
++        2.17E-02  1.00E-02  1.30E-02
+ 
+ ETA4
++        0.00E+00  0.00E+00  0.00E+00  0.00E+00
+ 
+ ETA5
++        0.00E+00  0.00E+00  0.00E+00  0.00E+00  0.00E+00
+ 
+
+
+ SIGMA - COV MATRIX FOR RANDOM EFFECTS - EPSILONS  ****
+
+
+         EPS1     
+ 
+ EPS1
++        1.11E-03
+ 
+1
+
+
+ OMEGA - CORR MATRIX FOR RANDOM EFFECTS - ETAS  *******
+
+
+         ETA1      ETA2      ETA3      ETA4      ETA5     
+ 
+ ETA1
++        6.01E-02
+ 
+ ETA2
++        9.34E-02  1.99E-02
+ 
+ ETA3
++        7.82E-02  5.14E-02  1.92E-02
+ 
+ ETA4
++        0.00E+00  0.00E+00  0.00E+00  9.61E-09
+ 
+ ETA5
++        0.00E+00  0.00E+00  0.00E+00  0.00E+00  9.61E-09
+ 
+
+
+ SIGMA - CORR MATRIX FOR RANDOM EFFECTS - EPSILONS  ***
+
+
+         EPS1     
+ 
+ EPS1
++        2.81E-03
+ 
+1
+ ************************************************************************************************************************
+ ********************                                                                                ********************
+ ********************                              NUTS BAYESIAN ANALYSIS                            ********************
+ ********************               COVARIANCE MATRIX OF ESTIMATE (From Sample Variance)             ********************
+ ********************                                                                                ********************
+ ************************************************************************************************************************
+ 
+
+            TH 1      TH 2      TH 3      TH 4      TH 5      TH 6      TH 7      TH 8      OM11      OM12      OM13      OM14  
+             OM15      OM22      OM23      OM24      OM25      OM33      OM34      OM35      OM44      OM45      OM55      SG11  
+
+ 
+ TH 1
++        4.20E-03
+ 
+ TH 2
++        9.24E-04  7.46E-04
+ 
+ TH 3
++        7.89E-04  4.14E-04  7.79E-04
+ 
+ TH 4
++       -2.18E-04 -9.91E-05  3.97E-06  6.26E-04
+ 
+ TH 5
++       -6.27E-04 -3.75E-04  5.39E-05  1.32E-04  1.39E-03
+ 
+ TH 6
++       -1.77E-04 -5.29E-05  2.27E-04 -1.90E-05  1.62E-04  2.45E-03
+ 
+ TH 7
++       -3.33E-04  3.17E-07  2.28E-04  6.15E-05 -6.83E-05 -2.12E-04  5.30E-03
+ 
+ TH 8
++        1.58E-04  3.56E-05  7.28E-04 -7.21E-05  2.91E-05  8.38E-04 -8.16E-04  6.75E-03
+ 
+ OM11
++        1.08E-03 -8.44E-05 -9.58E-05  3.60E-05  9.70E-05  2.54E-05 -3.25E-04  1.95E-04  3.58E-03
+ 
+ OM12
++        1.50E-04 -8.41E-05 -2.79E-05  2.73E-05  1.54E-04  7.35E-06 -1.08E-05 -3.29E-05  8.43E-04  4.16E-04
+ 
+ OM13
++        3.06E-04 -1.21E-05 -7.48E-05  4.92E-05  1.14E-05 -9.36E-05 -3.41E-05 -1.40E-04  8.95E-04  3.03E-04  4.72E-04
+ 
+ OM14
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM15
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         .........
+ 
+ OM22
++       -1.91E-05 -5.34E-05 -1.11E-05  1.29E-05  8.42E-05 -1.39E-05  5.07E-05 -1.03E-04  2.24E-04  1.47E-04  9.54E-05  0.00E+00
+          0.00E+00  1.35E-04
+ 
+ OM23
++       -3.86E-05 -3.02E-05 -3.93E-05  1.15E-05  3.10E-05  1.02E-05  6.33E-06 -1.17E-04  1.82E-04  1.12E-04  1.26E-04  0.00E+00
+          0.00E+00  8.61E-05  1.01E-04
+ 
+ OM24
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... .........
+ 
+ OM25
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... .........
+ 
+ OM33
++        6.61E-05  3.43E-05 -4.29E-05  1.05E-05 -5.11E-05 -4.19E-05 -1.59E-05 -1.39E-04  2.04E-04  8.97E-05  1.68E-04  0.00E+00
+          0.00E+00  5.88E-05  9.56E-05  0.00E+00  0.00E+00  1.70E-04
+ 
+ OM34
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... .........
+ 
+1
+
+            TH 1      TH 2      TH 3      TH 4      TH 5      TH 6      TH 7      TH 8      OM11      OM12      OM13      OM14  
+             OM15      OM22      OM23      OM24      OM25      OM33      OM34      OM35      OM44      OM45      OM55      SG11  
+
+ 
+ OM35
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM44
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM45
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM55
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ SG11
++        2.99E-06  2.02E-06  3.63E-07  4.65E-06 -1.09E-06 -4.82E-06  3.12E-07 -3.08E-06 -7.21E-06 -3.22E-06  2.24E-07  0.00E+00
+          0.00E+00 -1.32E-06 -1.90E-07  0.00E+00  0.00E+00  9.08E-07  0.00E+00  0.00E+00  0.00E+00  0.00E+00  0.00E+00  1.24E-06
+ 
+1
+ ************************************************************************************************************************
+ ********************                                                                                ********************
+ ********************                              NUTS BAYESIAN ANALYSIS                            ********************
+ ********************              CORRELATION MATRIX OF ESTIMATE (From Sample Variance)             ********************
+ ********************                                                                                ********************
+ ************************************************************************************************************************
+ 
+
+            TH 1      TH 2      TH 3      TH 4      TH 5      TH 6      TH 7      TH 8      OM11      OM12      OM13      OM14  
+             OM15      OM22      OM23      OM24      OM25      OM33      OM34      OM35      OM44      OM45      OM55      SG11  
+
+ 
+ TH 1
++        6.48E-02
+ 
+ TH 2
++        5.22E-01  2.73E-02
+ 
+ TH 3
++        4.37E-01  5.44E-01  2.79E-02
+ 
+ TH 4
++       -1.35E-01 -1.45E-01  5.68E-03  2.50E-02
+ 
+ TH 5
++       -2.60E-01 -3.69E-01  5.19E-02  1.41E-01  3.72E-02
+ 
+ TH 6
++       -5.53E-02 -3.91E-02  1.64E-01 -1.53E-02  8.82E-02  4.95E-02
+ 
+ TH 7
++       -7.06E-02  1.60E-04  1.12E-01  3.37E-02 -2.52E-02 -5.88E-02  7.28E-02
+ 
+ TH 8
++        2.97E-02  1.59E-02  3.17E-01 -3.51E-02  9.50E-03  2.06E-01 -1.36E-01  8.21E-02
+ 
+ OM11
++        2.78E-01 -5.16E-02 -5.73E-02  2.40E-02  4.35E-02  8.56E-03 -7.46E-02  3.96E-02  5.99E-02
+ 
+ OM12
++        1.13E-01 -1.51E-01 -4.90E-02  5.35E-02  2.02E-01  7.29E-03 -7.28E-03 -1.96E-02  6.91E-01  2.04E-02
+ 
+ OM13
++        2.17E-01 -2.04E-02 -1.23E-01  9.06E-02  1.41E-02 -8.70E-02 -2.15E-02 -7.82E-02  6.88E-01  6.84E-01  2.17E-02
+ 
+ OM14
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM15
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         .........
+ 
+ OM22
++       -2.54E-02 -1.68E-01 -3.43E-02  4.44E-02  1.95E-01 -2.42E-02  6.01E-02 -1.08E-01  3.23E-01  6.20E-01  3.79E-01  0.00E+00
+          0.00E+00  1.16E-02
+ 
+ OM23
++       -5.92E-02 -1.10E-01 -1.40E-01  4.58E-02  8.28E-02  2.06E-02  8.66E-03 -1.41E-01  3.03E-01  5.45E-01  5.77E-01  0.00E+00
+          0.00E+00  7.39E-01  1.00E-02
+ 
+ OM24
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... .........
+ 
+ OM25
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... .........
+ 
+ OM33
++        7.82E-02  9.63E-02 -1.18E-01  3.23E-02 -1.05E-01 -6.50E-02 -1.68E-02 -1.30E-01  2.61E-01  3.38E-01  5.92E-01  0.00E+00
+          0.00E+00  3.89E-01  7.30E-01  0.00E+00  0.00E+00  1.30E-02
+ 
+ OM34
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... .........
+ 
+1
+
+            TH 1      TH 2      TH 3      TH 4      TH 5      TH 6      TH 7      TH 8      OM11      OM12      OM13      OM14  
+             OM15      OM22      OM23      OM24      OM25      OM33      OM34      OM35      OM44      OM45      OM55      SG11  
+
+ 
+ OM35
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM44
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM45
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM55
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ SG11
++        4.14E-02  6.65E-02  1.17E-02  1.67E-01 -2.63E-02 -8.75E-02  3.85E-03 -3.36E-02 -1.08E-01 -1.42E-01  9.25E-03  0.00E+00
+          0.00E+00 -1.02E-01 -1.70E-02  0.00E+00  0.00E+00  6.25E-02  0.00E+00  0.00E+00  0.00E+00  0.00E+00  0.00E+00  1.11E-03
+ 
+1
+ ************************************************************************************************************************
+ ********************                                                                                ********************
+ ********************                              NUTS BAYESIAN ANALYSIS                            ********************
+ ********************           INVERSE COVARIANCE MATRIX OF ESTIMATE (From Sample Variance)         ********************
+ ********************                                                                                ********************
+ ************************************************************************************************************************
+ 
+
+            TH 1      TH 2      TH 3      TH 4      TH 5      TH 6      TH 7      TH 8      OM11      OM12      OM13      OM14  
+             OM15      OM22      OM23      OM24      OM25      OM33      OM34      OM35      OM44      OM45      OM55      SG11  
+
+ 
+ TH 1
++        4.58E+02
+ 
+ TH 2
++       -2.37E+02  3.06E+03
+ 
+ TH 3
++       -4.25E+02 -1.66E+03  3.13E+03
+ 
+ TH 4
++        1.26E+02  2.93E+02 -3.56E+02  1.78E+03
+ 
+ TH 5
++        1.47E+02  6.27E+02 -6.31E+02 -3.80E+01  1.05E+03
+ 
+ TH 6
++        3.02E+01  9.44E+01 -2.06E+02  1.62E+01 -4.47E+00  4.66E+02
+ 
+ TH 7
++        4.77E+01  8.08E+01 -2.01E+02  8.05E+00  6.27E+01  1.90E+01  2.10E+02
+ 
+ TH 8
++        4.33E+01  1.59E+02 -3.15E+02  4.49E+01  6.49E+01 -3.12E+01  4.15E+01  1.94E+02
+ 
+ OM11
++       -1.18E+02  4.16E+01  1.55E+02  1.72E+00  1.87E+01 -5.30E+01  1.81E+01 -3.56E+01  7.60E+02
+ 
+ OM12
++        4.81E+01  1.63E+02 -2.02E+02  7.10E+01 -3.63E+02 -5.64E+01 -2.36E+00 -2.33E+01 -9.44E+02  8.49E+03
+ 
+ OM13
++       -2.91E+02 -1.53E+01  4.26E+02 -4.09E+02 -6.75E+01  2.34E+02 -8.28E+01  1.86E+00 -1.03E+03 -3.03E+03  8.08E+03
+ 
+ OM14
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM15
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         .........
+ 
+ OM22
++       -2.32E+02  7.65E+02 -8.38E+02 -1.27E+02 -1.94E+02  5.07E+02 -1.37E+02  1.30E+02 -2.36E+02 -5.45E+03  4.04E+03  0.00E+00
+          0.00E+00  2.45E+04
+ 
+ OM23
++        6.92E+02  3.65E+02  9.31E+01  4.76E+02  9.46E+01 -8.41E+02  1.55E+02  1.47E+02  9.97E+02 -6.92E+02 -5.02E+03  0.00E+00
+          0.00E+00 -2.26E+04  5.14E+04
+ 
+ OM24
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... .........
+ 
+ OM25
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... .........
+ 
+ OM33
++       -5.32E+01 -1.20E+03  5.28E+02 -1.02E+02  2.89E+02  1.58E+02  1.30E+01 -3.06E+01  1.52E+02  1.62E+03 -3.40E+03  0.00E+00
+          0.00E+00  3.26E+03 -1.73E+04  0.00E+00  0.00E+00  1.73E+04
+ 
+ OM34
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... .........
+ 
+1
+
+            TH 1      TH 2      TH 3      TH 4      TH 5      TH 6      TH 7      TH 8      OM11      OM12      OM13      OM14  
+             OM15      OM22      OM23      OM24      OM25      OM33      OM34      OM35      OM44      OM45      OM55      SG11  
+
+ 
+ OM35
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM44
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM45
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ OM55
++       ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+         ......... ......... ......... ......... ......... ......... ......... ......... ......... ......... .........
+ 
+ SG11
++       -1.33E+03 -1.33E+03  1.09E+03 -6.91E+03 -1.22E+03  1.29E+03 -5.64E+01 -1.17E+02  1.83E+03  8.79E+03 -6.24E+03  0.00E+00
+          0.00E+00  6.18E+03 -5.49E+03  0.00E+00  0.00E+00 -3.09E+03  0.00E+00  0.00E+00  0.00E+00  0.00E+00  0.00E+00  8.82E+05
+ 
+ Elapsed postprocess time in seconds:     2.14
+ Elapsed finaloutput time in seconds:     0.29
+ #CPUT: Total CPU Time in Seconds,     8882.832
+Stop Time:
+Sun May 12 10:01:15 EDT 2024
