@@ -61,7 +61,7 @@ This page demonstrates the following `bbr` and `bbr.bayes` functionality:
 
 <hr />
 
-This page details a range of tasks typically performed throughout the modeling process such as defining, submitting, and annotating models. Our scientists run this code in a scratch pad style script (i.e., {{< var public_expo_repo.model_mang >}}) because it isn't necessary for the entire coding history for each model to persist. Here, the code used each step of the process is provided as a reference, and a runnable version of this page is available in our Github repository:  {{< var public_expo_repo.model_mang_demo >}}. 
+This page details a range of tasks typically performed throughout the modeling process such as defining, submitting, and annotating models. Our scientists run this code in a scratch pad style script (i.e., {{< var public_expo_repo.model_mang >}}) because it isn't necessary for the entire coding history for each model to persist. Here, the code used in each step of the process is provided as a reference, and a runnable version of this page is available in our Github repository:  {{< var public_expo_repo.model_mang_demo >}}. 
 
 If you're a new `bbr` user, we recommend you read through the {{< var pkg_resource.bbr_getting_started >}} before trying to run any code. This vignette includes some setup and configuration (e.g., making sure `bbr` can find your NONMEM® installation) that needs to be done. 
 
@@ -231,7 +231,7 @@ Also, `bbr` has several helper functions to help update your control stream. For
 mod1000 <- update_model_id(mod1000)
 ```
 
-You can easily look at the differences between control streams of a model and its parent model. The main differences here include new MU referencing, additional prior distributions, and updated the estimation method.
+You can easily look at the differences between control streams of a model and its parent model. The main differences here include new MU referencing, additional prior distributions, and the updated estimation method.
 
 ```{r, eval = TRUE}
 model_diff(mod1000)
@@ -345,7 +345,7 @@ browseURL(file.path(FIGURE_DIR, "1000/1000-mcmc-history.pdf"))
 
 <hr />
 
-`bbr` has some great features that allow you to easily annotate your models. This helps you document your modeling process as you go, and can be easily retrieved later for creating "run logs" that describe the entire analysis. These fields are described in more detail in [MeRGE Expo 1](https://merge.metrumrg.com/expo/expo1-nonmem-foce/posts/model-management-demo.html#annotating-your-model). In this example, we make use of these annotations without further explanation.
+`bbr` has some great features that allow you to easily annotate your models. This helps you document your modeling process as you go and can be easily retrieved later for creating "run logs" that describe the entire analysis. These fields are described in more detail in [MeRGE Expo 1](https://merge.metrumrg.com/expo/expo1-nonmem-foce/posts/model-management-demo.html#annotating-your-model). In this example, we make use of these annotations without further explanation.
 
 Based on the output of `summarize_draws()` above, the following provides an example of how you can add a note to your model, and then move on to testing a model using No-U-Turn Sampler (NUTS)  (model 1001 in the next section).
 
@@ -487,7 +487,7 @@ submit_model(
 
 ### Choose final model
 
-After checking your model heuristics, parameter estimates, and GOF plots, the final model was determined to be run 1100. As above, this model can be identified as the "final model" in the `description` field so it can easily be identified as a key model when looking at the run log later.
+After checking model heuristics, parameter estimates, and GOF plots, the final model was determined to be run 1100. As above, this model can be identified as the "final model" in the `description` field so it can easily be identified as a key model when looking at the run log later.
 
 ```{r, eval = TRUE}
 mod1100 <- mod1100 %>%
